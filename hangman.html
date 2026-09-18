@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRON MAN HANGMAN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #141c2e;
+      --steel: #2a354d;
+      --gold: #f5c518;
+      --amber: #ff8a00;
+      --crimson: #e63946;
+      --cyan: #2ec4b6;
+      --ice: #f4f7fb;
+      --muted: #9aa7c2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Oswald, sans-serif;
+      color: var(--ice);
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #1d4ed8 0%, transparent 55%),
+        radial-gradient(900px 400px at 100% 0%, #9a3412 0%, transparent 50%),
+        linear-gradient(160deg, #070b14, var(--bg) 40%, #111827);
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(42px, 8vw, 72px);
+      letter-spacing: 3px;
+      margin: 0;
+      line-height: 0.9;
+      background: linear-gradient(90deg, var(--gold), var(--amber), var(--crimson));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .tag {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chip {
+      background: var(--panel);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 14px;
+      min-width: 88px;
+      text-align: center;
+    }
+
+    .chip b {
+      display: block;
+      font-size: 22px;
+      color: var(--gold);
+    }
+
+    .chip span {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 760px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .board { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: color-mix(in srgb, var(--panel) 88%, black);
+      border: 1px solid #3b4a68;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .gallows { stroke: #64748b; stroke-width: 8; fill: none; stroke-linecap: round; }
+    .rope { stroke: #f5c518; stroke-width: 5; }
+    .man { stroke: #ff8a00; stroke-width: 7; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .man.head { fill: #0b1220; }
+    .hidden-part { opacity: 0; }
+    .show-part { opacity: 1; transition: opacity 180ms ease; }
+
+    .category {
+      display: inline-block;
+      background: linear-gradient(90deg, #1d4ed8, #0ea5e9);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 999px;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .word {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 72px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .slot {
+      width: 42px;
+      height: 54px;
+      border-bottom: 4px solid var(--gold);
+      display: grid;
+      place-items: center;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 38px;
+      color: var(--ice);
+    }
+
+    .slot.space {
+      width: 22px;
+      border: 0;
+    }
+
+    form.guess-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    #letter {
+      width: 72px;
+      height: 64px;
+      text-align: center;
+      text-transform: uppercase;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 40px;
+      background: #0a1020;
+      color: var(--gold);
+      border: 3px solid var(--gold);
+      border-radius: 10px;
+      outline: none;
+    }
+
+    #letter:focus { box-shadow: 0 0 0 4px rgba(245, 197, 24, 0.25); }
+
+    button {
+      font-family: Oswald, sans-serif;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      border: 0;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    .guess-btn {
+      flex: 1;
+      background: linear-gradient(90deg, var(--amber), var(--crimson));
+      color: white;
+      font-size: 22px;
+    }
+
+    .new-btn {
+      width: 100%;
+      margin-top: 12px;
+      background: var(--cyan);
+      color: #04221f;
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    .guess-btn:disabled, .new-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status {
+      min-height: 28px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      letter-spacing: 0.6px;
+    }
+
+    .status.win { color: var(--cyan); }
+    .status.lose { color: var(--crimson); }
+
+    .bank-title {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 46px;
+      padding: 10px;
+      background: #0a1020;
+      border: 1px dashed #4b5d80;
+      border-radius: 10px;
+    }
+
+    .miss {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      background: var(--crimson);
+      color: white;
+      border-radius: 6px;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 22px;
+    }
+
+    .empty-bank { color: #5b6b88; font-size: 14px; padding: 6px 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>IRON MAN HANGMAN</h1>
+        <div class="tag">Movies · Sports · Muscle · Machines</div>
+      </div>
+      <div class="stats">
+        <div class="chip"><b id="wins">0</b><span>Wins</span></div>
+        <div class="chip"><b id="losses">0</b><span>Losses</span></div>
+        <div class="chip"><b id="left">7</b><span>Strikes left</span></div>
+      </div>
+    </header>
+
+    <div class="board">
+      <section class="panel">
+        <svg viewBox="0 0 220 260" aria-hidden="true">
+          <line class="gallows" x1="30" y1="240" x2="190" y2="240" />
+          <line class="gallows" x1="55" y1="240" x2="55" y2="20" />
+          <line class="gallows" x1="55" y1="20" x2="150" y2="20" />
+          <line class="gallows" x1="55" y1="70" x2="95" y2="20" />
+          <line class="rope" x1="150" y1="20" x2="150" y2="48" />
+          <circle id="p0" class="man head hidden-part" cx="150" cy="68" r="20" />
+          <line id="p1" class="man hidden-part" x1="150" y1="88" x2="150" y2="150" />
+          <line id="p2" class="man hidden-part" x1="150" y1="108" x2="118" y2="132" />
+          <line id="p3" class="man hidden-part" x1="150" y1="108" x2="182" y2="132" />
+          <line id="p4" class="man hidden-part" x1="150" y1="150" x2="124" y2="198" />
+          <line id="p5" class="man hidden-part" x1="150" y1="150" x2="176" y2="198" />
+          <line id="p6" class="man hidden-part" x1="140" y1="62" x2="148" y2="70" />
+          <line id="p7" class="man hidden-part" x1="148" y1="62" x2="140" y2="70" />
+        </svg>
+      </section>
+
+      <section class="panel">
+        <div class="category" id="category">Sports</div>
+        <div class="word" id="word"></div>
+        <p class="status" id="status">Type a letter and hit Enter. Seven misses and you are toast.</p>
+        <form class="guess-row" id="form">
+          <input id="letter" maxlength="1" autocomplete="off" aria-label="Guess a letter" />
+          <button class="guess-btn" type="submit">Guess</button>
+        </form>
+        <div class="bank-title">Incorrect letter bank</div>
+        <div class="bank" id="bank"><span class="empty-bank">No misses yet. Stay locked in.</span></div>
+        <button class="new-btn" id="newGame" type="button">New match</button>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const WORDS = [
+      { word: "GLADIATOR", category: "Movies" },
+      { word: "DIE HARD", category: "Movies" },
+      { word: "ROCKY", category: "Movies" },
+      { word: "JAWS", category: "Movies" },
+      { word: "PREDATOR", category: "Movies" },
+      { word: "TERMINATOR", category: "Movies" },
+      { word: "MAD MAX", category: "Movies" },
+      { word: "TOP GUN", category: "Movies" },
+      { word: "GOODFELLAS", category: "Movies" },
+      { word: "BRAVEHEART", category: "Movies" },
+      { word: "HEAT", category: "Movies" },
+      { word: "CREED", category: "Movies" },
+      { word: "UNFORGIVEN", category: "Movies" },
+      { word: "RAGING BULL", category: "Movies" },
+      { word: "THE FUGITIVE", category: "Movies" },
+      { word: "TOUCHDOWN", category: "Sports" },
+      { word: "HOMERUN", category: "Sports" },
+      { word: "KNOCKOUT", category: "Sports" },
+      { word: "SLAM DUNK", category: "Sports" },
+      { word: "HAT TRICK", category: "Sports" },
+      { word: "BLITZ", category: "Sports" },
+      { word: "LINEBACKER", category: "Sports" },
+      { word: "POWER PLAY", category: "Sports" },
+      { word: "FACEOFF", category: "Sports" },
+      { word: "GRAND SLAM", category: "Sports" },
+      { word: "HAIL MARY", category: "Sports" },
+      { word: "FASTBALL", category: "Sports" },
+      { word: "REBOUND", category: "Sports" },
+      { word: "MUSTANG", category: "Machines" },
+      { word: "CAMARO", category: "Machines" },
+      { word: "CORVETTE", category: "Machines" },
+      { word: "CHOPPER", category: "Machines" },
+      { word: "BULLDOZER", category: "Machines" },
+      { word: "JACKHAMMER", category: "Machines" },
+      { word: "BARBELL", category: "Muscle" },
+      { word: "DEADLIFT", category: "Muscle" },
+      { word: "BENCH PRESS", category: "Muscle" },
+      { word: "UPPERCUT", category: "Muscle" },
+      { word: "ANVIL", category: "Muscle" },
+      { word: "WRENCH", category: "Machines" }
+    ];
+
+    const MAX_MISSES = 7;
+    const state = {
+      answer: "",
+      category: "",
+      guessed: new Set(),
+      misses: [],
+      over: false,
+      wins: 0,
+      losses: 0
+    };
+
+    const els = {
+      word: document.getElementById("word"),
+      bank: document.getElementById("bank"),
+      status: document.getElementById("status"),
+      letter: document.getElementById("letter"),
+      form: document.getElementById("form"),
+      category: document.getElementById("category"),
+      wins: document.getElementById("wins"),
+      losses: document.getElementById("losses"),
+      left: document.getElementById("left"),
+      newGame: document.getElementById("newGame")
+    };
+
+    function pickWord() {
+      const pick = WORDS[Math.floor(Math.random() * WORDS.length)];
+      state.answer = pick.word;
+      state.category = pick.category;
+      state.guessed = new Set();
+      state.misses = [];
+      state.over = false;
+      els.letter.disabled = false;
+      els.form.querySelector("button").disabled = false;
+      els.status.className = "status";
+      els.status.textContent = "Type a letter and hit Enter. Seven misses and you are toast.";
+      render();
+      els.letter.focus();
+    }
+
+    function lettersInAnswer() {
+      return [...state.answer].filter((ch) => /[A-Z]/.test(ch));
+    }
+
+    function won() {
+      return lettersInAnswer().every((ch) => state.guessed.has(ch));
+    }
+
+    function render() {
+      els.category.textContent = state.category;
+      els.wins.textContent = state.wins;
+      els.losses.textContent = state.losses;
+      els.left.textContent = MAX_MISSES - state.misses.length;
+
+      els.word.innerHTML = "";
+      for (const ch of state.answer) {
+        const slot = document.createElement("div");
+        if (ch === " ") {
+          slot.className = "slot space";
+        } else {
+          slot.className = "slot";
+          slot.textContent = state.guessed.has(ch) || state.over ? ch : "";
+        }
+        els.word.appendChild(slot);
+      }
+
+      els.bank.innerHTML = "";
+      if (!state.misses.length) {
+        els.bank.innerHTML = '<span class="empty-bank">No misses yet. Stay locked in.</span>';
+      } else {
+        state.misses.forEach((letter) => {
+          const miss = document.createElement("div");
+          miss.className = "miss";
+          miss.textContent = letter;
+          els.bank.appendChild(miss);
+        });
+      }
+
+      for (let i = 0; i < 8; i++) {
+        const part = document.getElementById("p" + i);
+        part.classList.toggle("show-part", i < state.misses.length);
+        part.classList.toggle("hidden-part", i >= state.misses.length);
+      }
+    }
+
+    function guess(raw) {
+      if (state.over) return;
+      const letter = String(raw || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
+      if (!letter) {
+        els.status.textContent = "Need a letter, champ.";
+        return;
+      }
+      if (state.guessed.has(letter) || state.misses.includes(letter)) {
+        els.status.textContent = letter + " is already in play.";
+        return;
+      }
+
+      if (state.answer.includes(letter)) {
+        state.guessed.add(letter);
+        els.status.textContent = letter + " is in there. Keep swinging.";
+      } else {
+        state.misses.push(letter);
+        els.status.textContent = letter + " is a miss. In the bank.";
+      }
+
+      if (won()) {
+        state.over = true;
+        state.wins += 1;
+        els.status.className = "status win";
+        els.status.textContent = "Victory. You cracked " + state.answer + ".";
+        els.letter.disabled = true;
+        els.form.querySelector("button").disabled = true;
+      } else if (state.misses.length >= MAX_MISSES) {
+        state.over = true;
+        state.losses += 1;
+        els.status.className = "status lose";
+        els.status.textContent = "Down for the count. It was " + state.answer + ".";
+        els.letter.disabled = true;
+        els.form.querySelector("button").disabled = true;
+      }
+
+      render();
+    }
+
+    els.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      guess(els.letter.value);
+      els.letter.value = "";
+      els.letter.focus();
+    });
+
+    els.letter.addEventListener("input", () => {
+      els.letter.value = els.letter.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
+    });
+
+    els.newGame.addEventListener("click", pickWord);
+
+    pickWord();
+  </script>
+</body>
+</html>
