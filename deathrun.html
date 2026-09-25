@@ -37,11 +37,11 @@
       gap: 12px;
     }
     .badge {
-      background: linear-gradient(180deg, #fff, #ffe9a8);
+      background: linear-gradient(180deg, #810808, #ffe9a8);
       color: var(--ink);
       border: 4px solid #fff;
       border-radius: 18px;
-      padding: 8px 14px;
+      padding: 8px 14px;  
       box-shadow: 0 8px 0 #dacaac, 0 14px 24px rgba(0,0,0,.35);
       min-width: 110px;
     }
@@ -167,6 +167,43 @@
       box-shadow: 0 4px 0 rgba(0,0,0,.2);
     }
     .lvl:disabled { opacity: .4; cursor: not-allowed; }
+    #powerGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    @media (max-width: 720px) {
+      #powerGrid { grid-template-columns: 1fr; }
+    }
+    .power-card {
+      border: 0;
+      border-radius: 20px;
+      padding: 16px 14px 18px;
+      cursor: pointer;
+      color: #fff;
+      text-align: left;
+      font-family: Fredoka, sans-serif;
+      box-shadow: 0 7px 0 rgba(0,0,0,.22);
+      min-height: 168px;
+    }
+    .power-card:hover { transform: translateY(-4px); }
+    .power-card .ico { font-size: 32px; display: block; margin-bottom: 6px; }
+    .power-card strong { font-family: "Lilita One", cursive; font-size: 22px; display: block; }
+    .power-card span { display: block; margin-top: 6px; font-weight: 700; opacity: .95; font-size: 14px; line-height: 1.3; }
+    #hudPower {
+      display: none;
+      position: absolute;
+      top: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(12,10,32,.8);
+      border: 3px solid #fff;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
     #toast {
       position: absolute;
       top: 40%;
@@ -188,6 +225,7 @@
       <div class="world-chip"><h2 id="hudWorld">Leafy Grove</h2><p id="hudSub">World 1</p></div>
       <div class="badge" style="text-align:right"><span>Coins / Lives</span><b id="hudStats">0 ★  3</b></div>
     </div>
+    <div id="hudPower"></div>
     <div id="hint">Click to look around · WASD move · Space jump · Shift sprint · R restart course</div>
     <div id="toast"></div>
     <div id="screens">
@@ -198,6 +236,7 @@
           <div class="worlds" id="worldGrid"></div>
           <div class="row">
             <button class="play" id="btnContinue">Continue adventure</button>
+            <button class="play" id="btnSandbox" style="background:linear-gradient(180deg,#7dd3fc,#a855f7);color:#1a1333;box-shadow:0 5px 0 #6d28d9">Sandbox</button>
             <button class="ghost" id="btnReset">Reset save</button>
             <a class="ghost" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">Hangman</a>
           </div>
@@ -214,21 +253,43 @@
           </div>
         </div>
       </section>
+      <section class="screen" id="powerScreen">
+        <div class="panel">
+          <h1>COURSE CLEAR!</h1>
+          <p class="tag" id="powerTag">Pick 1 power-up. It lasts 3 attempts on the next course.</p>
+          <div id="powerGrid"></div>
+        </div>
+      </section>
     </div>
   </div>
 
   <script>
     const WORLDS = [
-      { name: "Leafy Grove", tag: "Vines, timber trails, river mist", sky: 0x7ec8e3, fog: 0x9ad1a0, fogFar: 160, ground: 0x2f7d32, plat: 0x8d5a2b, plat2: 0x5a8f3c, accent: 0xffeb3b, gimmick: "jungle", btn: "linear-gradient(180deg,#62c458,#1f7a32)" },
-      { name: "Candy Kingdom", tag: "Frosting roads and gumdrop towers", sky: 0xffb3d9, fog: 0xffcce6, fogFar: 150, ground: 0xff7eb3, plat: 0xfff1f8, plat2: 0xff6eb4, accent: 0x7c4dff, gimmick: "candy", btn: "linear-gradient(180deg,#ff8ec4,#d946a6)" },
-      { name: "Sunbaked Dunes", tag: "Sandstone hops under a huge sun", sky: 0xffc978, fog: 0xf0c27a, fogFar: 180, ground: 0xe0a45a, plat: 0xd4a017, plat2: 0xc47a2a, accent: 0xff6b35, gimmick: "desert", btn: "linear-gradient(180deg,#ffcc66,#d97706)" },
-      { name: "Neon Streets", tag: "Midnight city parkour over traffic", sky: 0x1b1440, fog: 0x24164d, fogFar: 140, ground: 0x2a2a32, plat: 0x3d3d4a, plat2: 0xff2d95, accent: 0x2de2ff, gimmick: "city", btn: "linear-gradient(180deg,#5b4dff,#1a1144)" },
-      { name: "Frostpeak Pass", tag: "Icy slides and pinpoint landings", sky: 0xd8f0ff, fog: 0xcfe8ff, fogFar: 170, ground: 0xeaf6ff, plat: 0xb9e0ff, plat2: 0xffffff, accent: 0x4cc9f0, gimmick: "ice", btn: "linear-gradient(180deg,#bde0fe,#3a86ff)" },
-      { name: "Magma Keep", tag: "Crumbling stone above the lava sea", sky: 0x3b0a0a, fog: 0x5a1408, fogFar: 130, ground: 0x1a0505, plat: 0x4a3728, plat2: 0xff5722, accent: 0xffeb3b, gimmick: "lava", btn: "linear-gradient(180deg,#ff6b35,#7f1d1d)" },
-      { name: "Coral Cove", tag: "Buoyant leaps through reef palaces", sky: 0x147b9a, fog: 0x1a8eaa, fogFar: 140, ground: 0x0b5d6b, plat: 0xff8fab, plat2: 0x00c2a8, accent: 0xffe66d, gimmick: "ocean", btn: "linear-gradient(180deg,#00bbd4,#006d77)" },
-      { name: "Sky Parade", tag: "Cloud roads and rainbow dash pads", sky: 0x9bd4ff, fog: 0xc5e7ff, fogFar: 190, ground: 0xffffff, plat: 0xffffff, plat2: 0xff8fab, accent: 0x7b2cbf, gimmick: "sky", btn: "linear-gradient(180deg,#90e0ef,#48cae4)" },
-      { name: "Spooky Hollow", tag: "Blink-away bridges in the fog", sky: 0x1b1030, fog: 0x2a1848, fogFar: 90, ground: 0x140c22, plat: 0x3e2723, plat2: 0x7b1fa2, accent: 0xb6ff3b, gimmick: "haunt", btn: "linear-gradient(180deg,#7b2cbf,#240046)" },
-      { name: "Star Palace", tag: "The final rainbow road in space", sky: 0x070814, fog: 0x12082a, fogFar: 200, ground: 0x05040d, plat: 0xffd166, plat2: 0x9b5de5, accent: 0x00f5d4, gimmick: "star", btn: "linear-gradient(180deg,#ffd166,#9b5de5)" }
+      { name: "Leafy Grove", tag: "Vines, timber trails, river mist", sky: 0x3ec5ff, fog: 0x6ee7a0, fogFar: 175, ground: 0x16a34a, plat: 0xf59e0b, plat2: 0x4ade80, accent: 0xffee00, gimmick: "jungle", btn: "linear-gradient(180deg,#4ade80,#16a34a)" },
+      { name: "Candy Kingdom", tag: "Frosting roads and gumdrop towers", sky: 0xff6ec7, fog: 0xff9ad5, fogFar: 165, ground: 0xff3d9a, plat: 0xfff5ff, plat2: 0xff2e9a, accent: 0xc026d3, gimmick: "candy", btn: "linear-gradient(180deg,#ff6ec7,#d946ef)" },
+      { name: "Sunbaked Dunes", tag: "Sandstone hops under a huge sun", sky: 0xffb703, fog: 0xffc44d, fogFar: 190, ground: 0xf4a261, plat: 0xffcc00, plat2: 0xff6b2d, accent: 0xff006e, gimmick: "desert", btn: "linear-gradient(180deg,#ffcc00,#f97316)" },
+      { name: "Neon Streets", tag: "Midnight city parkour over traffic", sky: 0x2a1166, fog: 0x4c1d95, fogFar: 155, ground: 0x1e1b4b, plat: 0x6366f1, plat2: 0xff10f0, accent: 0x00f6ff, gimmick: "city", btn: "linear-gradient(180deg,#a855f7,#312e81)" },
+      { name: "Frostpeak Pass", tag: "Icy slides and pinpoint landings", sky: 0x7dd3fc, fog: 0xbae6fd, fogFar: 185, ground: 0xe0f2fe, plat: 0x38bdf8, plat2: 0xf0f9ff, accent: 0x2563eb, gimmick: "ice", btn: "linear-gradient(180deg,#38bdf8,#2563eb)" },
+      { name: "Magma Keep", tag: "Crumbling stone above the lava sea", sky: 0x9b1c1c, fog: 0xdc2626, fogFar: 145, ground: 0x450a0a, plat: 0xfb5607, plat2: 0xff006e, accent: 0xffee00, gimmick: "lava", btn: "linear-gradient(180deg,#fb5607,#9b1c1c)" },
+      { name: "Coral Cove", tag: "Buoyant leaps through reef palaces", sky: 0x00c2e0, fog: 0x5eead4, fogFar: 155, ground: 0x0e7490, plat: 0xff6b9d, plat2: 0x2dd4bf, accent: 0xffe66d, gimmick: "ocean", btn: "linear-gradient(180deg,#2dd4bf,#0284c7)" },
+      { name: "Sky Parade", tag: "Cloud roads and rainbow dash pads", sky: 0x38bdf8, fog: 0x7dd3fc, fogFar: 200, ground: 0xdbeafe, plat: 0xffffff, plat2: 0xff5d8f, accent: 0xa855f7, gimmick: "sky", btn: "linear-gradient(180deg,#7dd3fc,#c084fc)" },
+      { name: "Spooky Hollow", tag: "Blink-away bridges in the fog", sky: 0x4c1d95, fog: 0x7c3aed, fogFar: 110, ground: 0x2e1065, plat: 0xa855f7, plat2: 0x22c55e, accent: 0xd0ff00, gimmick: "haunt", btn: "linear-gradient(180deg,#c026d3,#4c1d95)" },
+      { name: "Star Palace", tag: "The final rainbow road in space", sky: 0x0f172a, fog: 0x4c1d95, fogFar: 210, ground: 0x1e1b4b, plat: 0xffdd00, plat2: 0xd946ef, accent: 0x22f0c0, gimmick: "star", btn: "linear-gradient(180deg,#ffdd00,#d946ef)" }
+    ];
+
+    const POWERS = [
+      { id: "superJump", name: "Super Jump", ico: "🚀", desc: "Launch way higher. Gaps feel short.", bg: "linear-gradient(180deg,#ff9f1c,#ff006e)" },
+      { id: "lowGrav", name: "Moon Gravity", ico: "🌙", desc: "Floaty jumps and a slow, soft fall.", bg: "linear-gradient(180deg,#60a5fa,#312e81)" },
+      { id: "turbo", name: "Turbo Sneaks", ico: "💨", desc: "Sprint as the default. Courses fly by.", bg: "linear-gradient(180deg,#4ade80,#166534)" },
+      { id: "doubleJump", name: "Double Jump", ico: "🦘", desc: "One extra jump in mid-air. Space again.", bg: "linear-gradient(180deg,#f472b6,#7c3aed)" },
+      { id: "feather", name: "Feather Fall", ico: "🪶", desc: "Hold Space to glide. Hard to miss pads.", bg: "linear-gradient(180deg,#fde68a,#38bdf8)" },
+      { id: "magnet", name: "Star Magnet", ico: "⭐", desc: "Coins snap to you from farther away.", bg: "linear-gradient(180deg,#facc15,#d97706)" },
+      { id: "shield", name: "Safety Spark", ico: "🛡️", desc: "The first red-bar hit each attempt is free.", bg: "linear-gradient(180deg,#22d3ee,#2563eb)" },
+      { id: "sticky", name: "Sticky Grip", ico: "🧲", desc: "Ice won't slide. Landings are extra forgiving.", bg: "linear-gradient(180deg,#fb7185,#9f1239)" },
+      { id: "timeWarp", name: "Time Warp", ico: "⏱️", desc: "Red spinners crawl. Timing gets easy.", bg: "linear-gradient(180deg,#c4b5fd,#5b21b6)" },
+      { id: "widePads", name: "Wide Pads", ico: "🟪", desc: "Every platform is chunkier to land on.", bg: "linear-gradient(180deg,#34d399,#065f46)" },
+      { id: "hover", name: "Hover Step", ico: "☁️", desc: "Jump a beat late and still catch it.", bg: "linear-gradient(180deg,#e0f2fe,#0284c7)" },
+      { id: "spring", name: "Spring Soles", ico: "👟", desc: "Every landing pops you up a little.", bg: "linear-gradient(180deg,#86efac,#f59e0b)" }
     ];
 
     const SAVE_KEY = "starpath-dash-v1";
@@ -247,16 +308,17 @@
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(68, 1, 0.1, 600);
     const clock = new THREE.Clock();
 
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x334433, 0.85);
+    const hemi = new THREE.HemisphereLight(0xfff4dc, 0x4ade80, 1.2);
     scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+    const sun = new THREE.DirectionalLight(0xfff3c4, 1.45);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 2;
     sun.shadow.camera.far = 160;
     sun.shadow.camera.left = -40;
@@ -273,27 +335,31 @@
     let currentWorld = 0;
     let currentLevel = 1;
     let lives = 3;
+    let sandboxMode = false;
     let runCoins = 0;
     let toastTimer = 0;
+    let activePower = null;
+    let pendingLevel = 1;
 
     const player = {
       mesh: null,
       pos: new THREE.Vector3(),
       vel: new THREE.Vector3(),
       onGround: false,
-      width: 0.7,
-      height: 1.55,
+      width: 0.36,
+      height: 1.45,
       coyote: 0,
       jumpBuf: 0,
+      airJumps: 0,
+      shieldReady: true,
       spawn: new THREE.Vector3(),
-      hats: null
+      rig: null,
+      animT: 0
     };
 
     let course = null;
     let decorRoot = new THREE.Group();
     scene.add(decorRoot);
-    const tmpBox = new THREE.Box3();
-    const playerBox = new THREE.Box3();
 
     function mulberry32(a) {
       return function () {
@@ -340,58 +406,124 @@
     }
 
     function shade(color, opts = {}) {
-      return new THREE.MeshPhongMaterial({
+      const mat = new THREE.MeshStandardMaterial({
         color,
         emissive: opts.emissive || 0x000000,
-        emissiveIntensity: opts.ei || 0,
-        shininess: opts.shininess ?? 38,
-        specular: 0x88aacc
+        emissiveIntensity: opts.ei ?? 0,
+        roughness: opts.roughness ?? 0.42,
+        metalness: opts.metalness ?? 0.08
       });
+      if (opts.glow) {
+        mat.emissive = new THREE.Color(color);
+        mat.emissiveIntensity = opts.glow;
+      }
+      return mat;
+    }
+
+    function jointMesh(geo, mat, y) {
+      const m = new THREE.Mesh(geo, mat);
+      m.position.y = y;
+      m.castShadow = true;
+      m.receiveShadow = true;
+      return m;
     }
 
     function makePlayer() {
-      const g = new THREE.Group();
-      const shoeMat = shade(0x3d2200, { shininess: 18 });
-      const shoeL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 10), shoeMat);
-      shoeL.scale.set(1.15, 0.55, 1.45);
-      shoeL.position.set(-0.16, 0.12, 0.06);
-      const shoeR = shoeL.clone();
-      shoeR.position.x = 0.16;
-      g.add(shoeL, shoeR);
-      const pants = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), shade(0x1d4ed8));
-      pants.scale.set(1.05, 0.85, 0.85);
-      pants.position.y = 0.42;
-      g.add(pants);
-      const shirt = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 12), shade(0xef4444, { shininess: 50 }));
-      shirt.scale.set(1.05, 0.95, 0.9);
-      shirt.position.y = 0.88;
-      g.add(shirt);
-      const armGeo = new THREE.CylinderGeometry(0.09, 0.08, 0.46, 12);
-      const armL = new THREE.Mesh(armGeo, shade(0xfbbf77));
-      armL.position.set(-0.42, 0.82, 0);
-      const handL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), shade(0xfbbf77));
-      handL.position.y = -0.26;
-      armL.add(handL);
-      const armR = armL.clone();
-      armR.position.x = 0.42;
-      g.add(armL, armR);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.33, 20, 16), shade(0xfbbf77, { shininess: 45 }));
-      head.position.y = 1.28;
-      g.add(head);
-      const hat = new THREE.Mesh(new THREE.SphereGeometry(0.34, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), shade(0xdc2626, { shininess: 60 }));
-      hat.position.y = 1.48;
-      g.add(hat);
-      const brim = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.045, 10, 24), shade(0xdc2626));
-      brim.rotation.x = Math.PI / 2;
-      brim.position.y = 1.42;
-      g.add(brim);
-      const emblem = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), shade(0xfff7cc, { shininess: 80 }));
-      emblem.position.set(0, 1.54, 0.3);
-      g.add(emblem);
-      g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-      player.hats = { armL, armR, shoe: shoeL };
-      player.mesh = g;
-      scene.add(g);
+      const skin = shade(0xc68642, { roughness: 0.55 });
+      const jeans = shade(0x243652, { roughness: 0.88 });
+      const hoodie = shade(0x8f1d1d, { roughness: 0.82 });
+      const shoe = shade(0x1b1b1b, { roughness: 0.45, metalness: 0.12 });
+      const hair = shade(0x2b1810, { roughness: 0.92 });
+      const white = shade(0xf4f4f4, { roughness: 0.35 });
+      const iris = shade(0x2c1810, { roughness: 0.3 });
+
+      const root = new THREE.Group();
+      const hips = new THREE.Group();
+      hips.position.y = 0.9;
+      root.add(hips);
+      const pelvis = jointMesh(new THREE.SphereGeometry(0.15, 14, 12), jeans, 0);
+      pelvis.scale.set(1.4, 0.8, 1.15);
+      hips.add(pelvis);
+
+      function makeLeg(side) {
+        const thigh = new THREE.Group();
+        thigh.position.set(side * 0.11, -0.02, 0);
+        thigh.add(jointMesh(new THREE.CylinderGeometry(0.085, 0.07, 0.4, 11), jeans, -0.2));
+        const calf = new THREE.Group();
+        calf.position.y = -0.4;
+        calf.add(jointMesh(new THREE.CylinderGeometry(0.065, 0.05, 0.38, 11), jeans, -0.19));
+        const foot = jointMesh(new THREE.SphereGeometry(0.075, 12, 10), shoe, 0);
+        foot.scale.set(1.05, 0.5, 1.85);
+        foot.position.set(0, -0.4, 0.07);
+        calf.add(foot);
+        thigh.add(calf);
+        hips.add(thigh);
+        return { thigh, calf, foot };
+      }
+      const legL = makeLeg(-1);
+      const legR = makeLeg(1);
+
+      const spine = new THREE.Group();
+      spine.position.y = 0.06;
+      hips.add(spine);
+      const belly = jointMesh(new THREE.SphereGeometry(0.16, 14, 12), hoodie, 0.14);
+      belly.scale.set(1.15, 1.05, 0.95);
+      spine.add(belly);
+
+      const chest = new THREE.Group();
+      chest.position.y = 0.26;
+      spine.add(chest);
+      const torso = jointMesh(new THREE.SphereGeometry(0.19, 16, 12), hoodie, 0.1);
+      torso.scale.set(1.32, 0.95, 1.02);
+      chest.add(torso);
+
+      function makeArm(side) {
+        const sh = new THREE.Group();
+        sh.position.set(side * 0.25, 0.14, 0);
+        sh.rotation.z = side * 0.12;
+        sh.add(jointMesh(new THREE.CylinderGeometry(0.052, 0.045, 0.27, 11), hoodie, -0.13));
+        const el = new THREE.Group();
+        el.position.y = -0.27;
+        el.add(jointMesh(new THREE.CylinderGeometry(0.042, 0.036, 0.25, 11), skin, -0.12));
+        el.add(jointMesh(new THREE.SphereGeometry(0.05, 12, 10), skin, -0.27));
+        sh.add(el);
+        chest.add(sh);
+        return { sh, el };
+      }
+      const armL = makeArm(-1);
+      const armR = makeArm(1);
+
+      const head = new THREE.Group();
+      head.position.y = 0.4;
+      chest.add(head);
+      chest.add(jointMesh(new THREE.CylinderGeometry(0.055, 0.065, 0.1, 12), skin, 0.28));
+      head.add(jointMesh(new THREE.SphereGeometry(0.13, 20, 16), skin, 0));
+      head.add(jointMesh(new THREE.SphereGeometry(0.134, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), hair, 0.025));
+      const bang = jointMesh(new THREE.SphereGeometry(0.07, 10, 8), hair, 0);
+      bang.position.set(0, 0.06, 0.1);
+      bang.scale.set(1.5, 0.45, 0.7);
+      head.add(bang);
+      [-1, 1].forEach((s) => {
+        const eye = jointMesh(new THREE.SphereGeometry(0.028, 10, 8), white, 0);
+        eye.position.set(s * 0.045, 0.02, 0.11);
+        const pupil = jointMesh(new THREE.SphereGeometry(0.014, 8, 8), iris, 0);
+        pupil.position.set(s * 0.045, 0.018, 0.13);
+        head.add(eye, pupil);
+      });
+      const nose = jointMesh(new THREE.SphereGeometry(0.025, 8, 8), skin, 0);
+      nose.position.set(0, -0.01, 0.125);
+      nose.scale.set(0.7, 0.8, 1.1);
+      head.add(nose);
+
+      player.rig = {
+        hips, spine, chest, head,
+        thighL: legL.thigh, calfL: legL.calf,
+        thighR: legR.thigh, calfR: legR.calf,
+        armL: armL.sh, elbowL: armL.el,
+        armR: armR.sh, elbowR: armR.el
+      };
+      player.mesh = root;
+      scene.add(root);
     }
     makePlayer();
 
@@ -438,63 +570,134 @@
       return mesh;
     }
 
-    function decorateWorld(world, rng, lengthZ) {
+    function addMound(x, z, y, color, sx, sy, sz) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), shade(color, { roughness: 0.95 }));
+      m.scale.set(sx, sy, sz);
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      decorRoot.add(m);
+      return m;
+    }
+
+    function addBroadleafTree(x, z, rng, floorY) {
+      const base = floorY + 0.05;
+      addMound(x, z, base, rng() < 0.5 ? 0x4ade80 : 0x22c55e, 2.4 + rng() * 0.8, 0.32, 2.4 + rng() * 0.6);
+      const h = 6.2 + rng() * 4.5;
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14 + rng() * 0.08, 0.34 + rng() * 0.12, h, 9),
+        shade(0x5a3820, { roughness: 0.94 })
+      );
+      trunk.position.set(x, base + h * 0.42, z);
+      trunk.rotation.z = (rng() - 0.5) * 0.14;
+      trunk.rotation.x = (rng() - 0.5) * 0.1;
+      trunk.castShadow = true;
+      trunk.receiveShadow = true;
+      decorRoot.add(trunk);
+      const branch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.08, 1.6 + rng(), 7),
+        shade(0x5a3820, { roughness: 0.94 })
+      );
+      branch.position.set(x + 0.5, base + h * 0.55, z);
+      branch.rotation.z = 0.9 + rng() * 0.4;
+      branch.castShadow = true;
+      decorRoot.add(branch);
+      const greens = [0x22c55e, 0x4ade80, 0xa3e635, 0x16a34a];
+      const canopyY = base + h * 0.78;
+      for (let i = 0; i < 6; i++) {
+        const r = 1.15 + rng() * 1.05;
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 10), shade(greens[i % 4], { roughness: 0.9 }));
+        leaf.position.set(x + (rng() - 0.5) * 2.2, canopyY + (rng() - 0.35) * 1.6, z + (rng() - 0.5) * 2.2);
+        leaf.scale.y = 0.62 + rng() * 0.2;
+        leaf.castShadow = true;
+        leaf.receiveShadow = true;
+        decorRoot.add(leaf);
+      }
+    }
+
+    function addPineTree(x, z, rng, floorY) {
+      const base = floorY + 0.05;
+      addMound(x, z, base, 0xe8f4ff, 2.1, 0.28, 2.1);
+      const h = 5.5 + rng() * 3;
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.22, h, 8),
+        shade(0x4a321c, { roughness: 0.95 })
+      );
+      trunk.position.set(x, base + h * 0.42, z);
+      trunk.castShadow = true;
+      trunk.receiveShadow = true;
+      decorRoot.add(trunk);
+      for (let layer = 0; layer < 4; layer++) {
+        const cone = new THREE.Mesh(
+          new THREE.ConeGeometry(2.15 - layer * 0.38, 2.1, 10),
+          shade(layer % 2 ? 0x16a34a : 0x4ade80, { roughness: 0.5 })
+        );
+        cone.position.set(x, base + 1.8 + layer * 1.35, z);
+        cone.castShadow = true;
+        cone.receiveShadow = true;
+        decorRoot.add(cone);
+      }
+    }
+
+    function decorateWorld(world, rng, lengthZ, floorY) {
       const gimmick = world.gimmick;
-      const count = 28;
+      const count = gimmick === "jungle" || gimmick === "ice" || gimmick === "haunt" ? 36 : 26;
+      floorY = floorY == null ? -2.6 : floorY;
       for (let i = 0; i < count; i++) {
         const side = rng() < 0.5 ? -1 : 1;
-        const x = side * (10 + rng() * 18);
+        const x = side * (11 + rng() * 16);
         const z = rng() * lengthZ;
-        const y = -0.2;
         if (gimmick === "jungle") {
-          const th = 8 + rng() * 6;
-          addCyl(decorRoot, 0.38, 0.55, th, x, y + th / 2, z, 0x6b3f1d, { seg: 12 });
-          addBall(decorRoot, 2.4 + rng(), x, y + th + 0.4, z, 0x2e8b3a, { seg: 14 });
-          addBall(decorRoot, 1.6, x + 1.3, y + th - 0.4, z + 0.6, 0x3fa34a, { seg: 12 });
+          addBroadleafTree(x, z, rng, floorY);
         } else if (gimmick === "candy") {
-          addCyl(decorRoot, 0.22, 0.22, 6, x, y + 3, z, rng() < 0.5 ? 0xff3b3b : 0xffffff, { shininess: 80, seg: 14 });
-          const hook = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.22, 10, 18, Math.PI), shade(0xff3b3b, { shininess: 80 }));
-          hook.position.set(x, y + 6.2, z);
+          addMound(x, z, floorY + 0.04, 0xffc1e3, 1.6, 0.28, 1.6);
+          addCyl(decorRoot, 0.2, 0.22, 5.4, x, floorY + 2.7, z, rng() < 0.5 ? 0xff3b3b : 0xffffff, { roughness: 0.35, seg: 14 });
+          const hook = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.2, 10, 18, Math.PI), shade(0xff3b3b, { roughness: 0.35 }));
+          hook.position.set(x, floorY + 5.7, z);
           hook.rotation.z = Math.PI / 2;
           decorRoot.add(hook);
-          addBall(decorRoot, 1.3, x, 1.2, z + 2, rng() < 0.5 ? 0x7c4dff : 0x00e5a8, { shininess: 90 });
+          addBall(decorRoot, 1.15, x + 1.4, floorY + 1.15, z + 1.2, rng() < 0.5 ? 0x7c4dff : 0x00e5a8, { roughness: 0.28 });
         } else if (gimmick === "desert") {
-          const ch = 3 + rng() * 3;
-          addCyl(decorRoot, 0.28, 0.34, ch, x, y + ch / 2, z, 0x2f9e44, { seg: 12 });
-          addCyl(decorRoot, 0.16, 0.16, 1.4, x + 0.7, y + 2.2, z, 0x2f9e44, { seg: 10 });
-          addBall(decorRoot, 0.28, x, y + ch, z, 0x2f9e44);
+          addMound(x, z, floorY + 0.02, 0xd4a574, 2.2, 0.35, 2.2);
+          const ch = 2.8 + rng() * 2.4;
+          addCyl(decorRoot, 0.22, 0.3, ch, x, floorY + ch / 2, z, 0x2f9e44, { roughness: 0.7, seg: 12 });
+          addCyl(decorRoot, 0.12, 0.12, 1.2, x + 0.55, floorY + ch * 0.55, z, 0x2f9e44, { seg: 10 });
+          addBall(decorRoot, 0.24, x, floorY + ch, z, 0x2f9e44);
           if (i % 7 === 0) {
-            addCyl(decorRoot, 0.2, 3.4, 8, x * 1.4, 3.5, z, 0xc9a227, { seg: 5, shininess: 12 });
+            addMound(x * 1.2, z, floorY, 0xc9a227, 4.5, 1.1, 4.5);
+            addCyl(decorRoot, 0.15, 2.6, 7, x * 1.2, floorY + 3.4, z, 0xc9a227, { seg: 5, roughness: 0.9 });
           }
         } else if (gimmick === "city") {
-          const h = 8 + rng() * 18;
-          addCyl(decorRoot, 1.6 + rng(), 1.9 + rng(), h, x, h / 2 - 1, z, i % 2 ? 0x2b2d42 : 0x1d3557, { seg: 14 });
-          addBall(decorRoot, 1.1, x, h - 0.6, z, world.accent, { emissive: world.accent, ei: 0.55, shininess: 90 });
+          const h = 7 + rng() * 16;
+          addMound(x, z, floorY, 0x2a2a32, 3.2, 0.18, 3.2);
+          addCyl(decorRoot, 1.5 + rng() * 0.5, 1.8 + rng() * 0.4, h, x, floorY + h / 2, z, i % 2 ? 0x2b2d42 : 0x1d3557, { seg: 14, roughness: 0.55, metalness: 0.2 });
+          addBall(decorRoot, 0.9, x, floorY + h - 0.2, z, world.accent, { emissive: world.accent, ei: 0.55, roughness: 0.3 });
         } else if (gimmick === "ice") {
-          addCyl(decorRoot, 0.18, 0.28, 4, x, 2, z, 0x5c3d1e, { seg: 10 });
-          const snow = new THREE.Mesh(new THREE.SphereGeometry(1.5, 14, 12), shade(0xe8fff7, { shininess: 70 }));
-          snow.scale.set(1, 1.15, 1);
-          snow.position.set(x, 4.4, z);
-          decorRoot.add(snow);
+          addPineTree(x, z, rng, floorY);
         } else if (gimmick === "lava") {
-          addBall(decorRoot, 1.3 + rng() * 1.4, x, rng() * 1.4, z, 0x3e2723, { shininess: 8, seg: 12 });
+          addMound(x, z, floorY + 0.4, 0x3e2723, 1.8 + rng(), 0.7, 1.8);
+          addBall(decorRoot, 1.1 + rng(), x, floorY + 1.1, z, 0x2a1810, { roughness: 0.9, seg: 12 });
         } else if (gimmick === "ocean") {
-          const coral = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 10), shade(rng() < 0.5 ? 0xff6b6b : 0xffd93d, { shininess: 70 }));
-          coral.scale.set(0.8, 2.2 + rng(), 0.8);
-          coral.position.set(x, 1.1, z);
+          addMound(x, z, floorY + 0.1, 0x0b5d6b, 1.5, 0.25, 1.5);
+          const coral = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), shade(rng() < 0.5 ? 0xff6b6b : 0xffd93d, { roughness: 0.45 }));
+          coral.scale.set(0.8, 2.1 + rng(), 0.8);
+          coral.position.set(x, floorY + 1.2, z);
+          coral.castShadow = true;
           decorRoot.add(coral);
         } else if (gimmick === "sky") {
-          const cy = 6 + rng() * 8;
-          addBall(decorRoot, 2 + rng() * 0.8, x, cy, z, 0xffffff, { shininess: 8, seg: 14 });
-          addBall(decorRoot, 1.5, x + 1.6, cy + 0.3, z + 0.4, 0xffffff, { shininess: 8 });
-          addBall(decorRoot, 1.3, x - 1.4, cy + 0.2, z - 0.3, 0xffffff, { shininess: 8 });
+          addMound(x, z, floorY + 1.4, 0x7cb342, 2.6, 0.55, 2.6);
+          addBroadleafTree(x, z, rng, floorY + 1.5);
+          addBall(decorRoot, 1.8 + rng() * 0.6, x + 4, 8 + rng() * 7, z, 0xffffff, { roughness: 1, seg: 14 });
         } else if (gimmick === "haunt") {
-          addCyl(decorRoot, 0.12, 0.12, 2.4, x, 1.1, z, 0x2b2b2b, { seg: 10 });
-          addBox(decorRoot, 1.2, 1.6, 0.35, x, 0.8, z, 0x6d6a75, { radius: 0.28 });
+          addBroadleafTree(x, z, rng, floorY);
+          addCyl(decorRoot, 0.1, 0.1, 1.8, x + 2.2, floorY + 0.95, z, 0x2b2b2b, { seg: 10 });
+          addBox(decorRoot, 1.1, 1.4, 0.32, x + 2.2, floorY + 0.85, z, 0x6d6a75, { radius: 0.22, roughness: 0.9 });
         } else {
-          const crystal = new THREE.Mesh(new THREE.SphereGeometry(1.05 + rng() * 0.4, 8, 6), shade(rng() < 0.5 ? 0x00f5d4 : 0x9b5de5, { emissive: 0x221144, ei: 0.45, shininess: 90 }));
-          crystal.scale.set(0.7, 1.6, 0.7);
-          crystal.position.set(x, 1.8 + rng() * 3, z);
+          addMound(x, z, floorY + 0.2, 0x1a1030, 1.8, 0.4, 1.8);
+          const crystal = new THREE.Mesh(new THREE.SphereGeometry(0.9 + rng() * 0.35, 8, 6), shade(rng() < 0.5 ? 0x00f5d4 : 0x9b5de5, { emissive: 0x221144, ei: 0.45, roughness: 0.25, metalness: 0.35 }));
+          crystal.scale.set(0.7, 1.5, 0.7);
+          crystal.position.set(x, floorY + 1.7, z);
+          crystal.castShadow = true;
           decorRoot.add(crystal);
         }
       }
@@ -510,10 +713,10 @@
       const local = (stage - 1) / 9;
 
       scene.background = new THREE.Color(world.sky);
-      scene.fog = new THREE.Fog(world.fog, 18, world.fogFar);
+      scene.fog = new THREE.Fog(world.fog, 32, world.fogFar);
       hemi.color.setHex(world.sky);
       hemi.groundColor.setHex(world.ground);
-      sun.color.setHex(0xfff5d6);
+      sun.color.setHex(0xfff6d8);
       sun.position.set(18, 34, 8);
 
       const group = new THREE.Group();
@@ -532,7 +735,7 @@
       const moveSpd = 0.7 + t * 1.8 + local * 0.6;
 
       function pushPlat(cfg) {
-        const mesh = addBox(group, cfg.w, cfg.h || 0.7, cfg.d, cfg.x, cfg.y, cfg.z, cfg.color || (plats.length % 2 ? world.plat : world.plat2), { radius: Math.min(cfg.w, cfg.d) * 0.34, shininess: 42 });
+        const mesh = addBox(group, cfg.w, cfg.h || 0.7, cfg.d, cfg.x, cfg.y, cfg.z, cfg.color || (plats.length % 2 ? world.plat : world.plat2), { radius: Math.min(cfg.w, cfg.d) * 0.34, glow: 0.16, roughness: 0.38 });
         const p = {
           mesh, x: cfg.x, y: cfg.y, z: cfg.z, w: cfg.w, h: cfg.h || 0.7, d: cfg.d,
           type: cfg.type || "static",
@@ -548,7 +751,7 @@
         };
         plats.push(p);
         if (cfg.stripe) {
-          addBox(mesh, cfg.w * 0.7, 0.1, cfg.d * 0.7, 0, (cfg.h || 0.7) / 2 + 0.05, 0, world.accent, { radius: Math.min(cfg.w, cfg.d) * 0.22, shininess: 80 });
+          addBox(mesh, cfg.w * 0.7, 0.1, cfg.d * 0.7, 0, (cfg.h || 0.7) / 2 + 0.05, 0, world.accent, { radius: Math.min(cfg.w, cfg.d) * 0.22, glow: 0.35, roughness: 0.25 });
         }
         return p;
       }
@@ -595,14 +798,14 @@
 
         const p = pushPlat({
           w, d, x, y, z, type, ...extra,
-          color: extra.bounce ? 0x7cff6b : extra.friction < 1 ? 0xc8f4ff : null,
+          color: extra.bounce ? 0x39ff14 : extra.friction < 1 ? 0x7df9ff : null,
           stripe: extra.checkpoint
         });
 
         if (rng() > 0.45) {
           const coin = new THREE.Mesh(
             new THREE.TorusGeometry(0.26, 0.09, 12, 28),
-            shade(0xffd24a, { emissive: 0x553300, ei: 0.35, shininess: 90 })
+            shade(0xffd24a, { emissive: 0xffaa00, ei: 0.55, roughness: 0.25, metalness: 0.2 })
           );
           coin.position.set(x, y + 1.35, z);
           group.add(coin);
@@ -612,9 +815,10 @@
         if (rng() < 0.28 + t * 0.25) {
           const hz = new THREE.Group();
           const len = 1.8 + t * 1.2;
-          const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, len, 14), shade(0xff3355, { emissive: 0x440000, ei: 0.4, shininess: 70 }));
+          const barR = 0.16;
+          const bar = new THREE.Mesh(new THREE.CylinderGeometry(barR, barR, len, 14), shade(0xff1744, { emissive: 0xff1744, ei: 0.55, roughness: 0.28 }));
           bar.rotation.z = Math.PI / 2;
-          const capL = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), shade(0xff3355, { emissive: 0x440000, ei: 0.4 }));
+          const capL = new THREE.Mesh(new THREE.SphereGeometry(barR, 12, 10), shade(0xff1744, { emissive: 0xff1744, ei: 0.55, roughness: 0.28 }));
           const capR = capL.clone();
           capL.position.x = -len / 2;
           capR.position.x = len / 2;
@@ -622,7 +826,7 @@
           hz.position.set(x + (rng() - 0.5) * w * 0.4, y + 1.1, z + (rng() - 0.5) * d * 0.2);
           hz.traverse((o) => { if (o.isMesh) o.castShadow = true; });
           group.add(hz);
-          hazards.push({ mesh: hz, kind: "spin", baseY: y + 1.1, spd: 1.5 + t * 3 });
+          hazards.push({ mesh: hz, kind: "spin", len, radius: barR, spd: 1.5 + t * 3 });
         }
 
         if (world.gimmick === "jungle" && i % 3 === 0) {
@@ -637,25 +841,26 @@
       addBall(group, 0.16, 0, y + 4.55, z, 0xffd24a, { shininess: 90 });
       const banner = addBox(group, 1.6, 1, 0.08, 0.85, y + 3.6, z, 0xff4d6d, { radius: 0.22, shininess: 55 });
 
+      const floorY = world.gimmick === "lava" ? -6.2 : (world.gimmick === "sky" || world.gimmick === "star" ? -3.0 : -2.6);
       const floor = new THREE.Mesh(
         new THREE.CircleGeometry(220, 64),
-        shade(world.ground, { shininess: 12 })
+        shade(world.ground, { roughness: 0.95 })
       );
       floor.material.transparent = true;
-      floor.material.opacity = world.gimmick === "sky" || world.gimmick === "star" ? 0.15 : 0.9;
+      floor.material.opacity = world.gimmick === "sky" || world.gimmick === "star" ? 0.22 : 1;
       floor.rotation.x = -Math.PI / 2;
-      floor.position.y = world.gimmick === "lava" ? -6.5 : -8;
+      floor.position.y = floorY;
       floor.receiveShadow = true;
       group.add(floor);
 
       if (world.gimmick === "lava") {
-        const lava = new THREE.Mesh(new THREE.CircleGeometry(220, 48), shade(0xff3b00, { emissive: 0xff2200, ei: 0.55, shininess: 80 }));
+        const lava = new THREE.Mesh(new THREE.CircleGeometry(220, 48), shade(0xff3b00, { emissive: 0xff2200, ei: 0.55, roughness: 0.35 }));
         lava.rotation.x = -Math.PI / 2;
-        lava.position.y = -6.2;
+        lava.position.y = -6.15;
         group.add(lava);
       }
 
-      decorateWorld(world, rng, z + 20);
+      decorateWorld(world, rng, z + 20, floorY);
       course = { group, plats, coins, hazards, world, worldIndex, stage, levelNum, killY: world.gimmick === "lava" ? -5.6 : -7.4, flag, banner, gravity: world.gimmick === "ocean" || world.gimmick === "sky" ? 18 : 28 };
       return course;
     }
@@ -664,24 +869,106 @@
       player.pos.copy(at || player.spawn);
       player.vel.set(0, 0, 0);
       player.onGround = false;
+      player.airJumps = hasPower("doubleJump") ? 1 : 0;
+      player.shieldReady = true;
       player.mesh.position.copy(player.pos);
+    }
+
+    function hasPower(id) {
+      if (!activePower || activePower.id !== id) return false;
+      if (sandboxMode) return true;
+      return activePower.attempts > 0 && activePower.level === currentLevel;
+    }
+
+    function powerOn() {
+      if (!activePower || !activePower.id) return false;
+      if (sandboxMode) return true;
+      return activePower.attempts > 0 && activePower.level === currentLevel;
+    }
+
+    function pickThreePowers() {
+      const bag = POWERS.slice();
+      for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = bag[i]; bag[i] = bag[j]; bag[j] = t;
+      }
+      return bag.slice(0, 3);
+    }
+
+    function fillPowerGrid(list, nextLevel, includeSkip) {
+      const grid = document.getElementById("powerGrid");
+      grid.innerHTML = "";
+      list.forEach((p) => {
+        const b = document.createElement("button");
+        b.className = "power-card";
+        b.style.background = p.bg;
+        b.innerHTML = "<span class='ico'>" + p.ico + "</span><strong>" + p.name + "</strong><span>" + p.desc + "</span>";
+        b.onclick = () => {
+          activePower = { id: p.id, attempts: sandboxMode ? 99 : 3, level: nextLevel, name: p.name, ico: p.ico };
+          document.getElementById("powerScreen").classList.remove("show");
+          startLevel(nextLevel);
+        };
+        grid.appendChild(b);
+      });
+      if (includeSkip) {
+        const skip = document.createElement("button");
+        skip.className = "power-card";
+        skip.style.background = "linear-gradient(180deg,#64748b,#1e293b)";
+        skip.innerHTML = "<span class='ico'>🚫</span><strong>No Power</strong><span>Play this course vanilla.</span>";
+        skip.onclick = () => {
+          activePower = null;
+          document.getElementById("powerScreen").classList.remove("show");
+          startLevel(nextLevel);
+        };
+        grid.appendChild(skip);
+      }
+    }
+
+    function showPowerPicker(nextLevel) {
+      pendingLevel = nextLevel;
+      mode = "pick";
+      document.getElementById("hud").style.display = "none";
+      document.getElementById("hint").style.display = "none";
+      document.getElementById("hudPower").style.display = "none";
+      if (sandboxMode) {
+        document.getElementById("powerTag").textContent = "Sandbox · Equip any power for course " + nextLevel + ". Infinite duration.";
+        fillPowerGrid(POWERS, nextLevel, true);
+      } else {
+        document.getElementById("powerTag").textContent = "Pick 1 power-up for course " + nextLevel + ". It lasts 3 attempts.";
+        fillPowerGrid(pickThreePowers(), nextLevel, false);
+      }
+      document.getElementById("powerScreen").classList.add("show");
     }
 
     function startLevel(levelNum) {
       currentLevel = levelNum;
       currentWorld = Math.floor((levelNum - 1) / 10);
+      if (activePower && !sandboxMode && activePower.level !== levelNum) activePower = null;
+      if (sandboxMode && activePower) activePower.level = levelNum;
       generateCourse(levelNum);
+      if (hasPower("widePads")) {
+        for (const p of course.plats) {
+          p.w *= 1.28;
+          p.d *= 1.28;
+          p.mesh.scale.x *= 1.28;
+          p.mesh.scale.z *= 1.28;
+        }
+      }
       const start = course.plats[0];
       player.spawn.set(start.x, start.y + start.h / 2 + 0.02, start.z - 2);
       spawnPlayer();
       mouse.yaw = 0;
-      lives = 3;
+      lives = sandboxMode ? 99 : 3;
       runCoins = 0;
       mode = "play";
       document.getElementById("titleScreen").classList.remove("show");
       document.getElementById("worldScreen").classList.remove("show");
+      document.getElementById("powerScreen").classList.remove("show");
       document.getElementById("hud").style.display = "flex";
       document.getElementById("hint").style.display = "block";
+      document.getElementById("hint").textContent = sandboxMode
+        ? "SANDBOX · WASD move · Space jump · R retry · P powers ·  , / .  prev/next course · Esc menu"
+        : "Click to look around · WASD move · Space jump · Shift sprint · R restart course";
       flash((course.worldIndex + 1) + "-" + course.stage + "  START!");
       updateHud();
     }
@@ -689,8 +976,17 @@
     function updateHud() {
       document.getElementById("hudLevel").textContent = (currentWorld + 1) + "-" + (((currentLevel - 1) % 10) + 1);
       document.getElementById("hudWorld").textContent = WORLDS[currentWorld].name;
-      document.getElementById("hudSub").textContent = "World " + (currentWorld + 1) + "  ·  Course " + currentLevel + "/100";
-      document.getElementById("hudStats").textContent = (save.coins + runCoins) + " ★   " + lives;
+      document.getElementById("hudSub").textContent = (sandboxMode ? "SANDBOX  ·  " : "") + "World " + (currentWorld + 1) + "  ·  Course " + currentLevel + "/100";
+      document.getElementById("hudStats").textContent = (sandboxMode ? runCoins : (save.coins + runCoins)) + " ★   " + (sandboxMode ? "∞" : lives);
+      const hp = document.getElementById("hudPower");
+      if (powerOn()) {
+        hp.style.display = "block";
+        hp.textContent = sandboxMode
+          ? activePower.ico + "  " + activePower.name + "  ·  sandbox"
+          : activePower.ico + "  " + activePower.name + "  ·  " + activePower.attempts + " attempt" + (activePower.attempts === 1 ? "" : "s") + " left";
+      } else {
+        hp.style.display = "none";
+      }
     }
 
     function flash(text) {
@@ -701,14 +997,32 @@
     }
 
     function die(reason) {
+      if (reason === "hazard" && hasPower("shield") && player.shieldReady) {
+        player.shieldReady = false;
+        flash("SHIELD!");
+        return;
+      }
       lives -= 1;
-      flash(lives > 0 ? "OUCH!" : "COURSE OVER");
-      if (lives <= 0) {
+      let msg = lives <= 0 ? "COURSE OVER" : "OUCH!";
+      if (sandboxMode) {
+        lives = 99;
+        msg = "RETRY";
+      } else if (powerOn()) {
+        activePower.attempts -= 1;
+        if (activePower.attempts <= 0) {
+          activePower = null;
+          if (lives > 0) msg = "POWER GONE!";
+        }
+      }
+      flash(msg);
+      if (!sandboxMode && lives <= 0) {
+        activePower = null;
         mode = "dead";
         setTimeout(() => {
           mode = "menu";
           document.getElementById("hud").style.display = "none";
           document.getElementById("hint").style.display = "none";
+          document.getElementById("hudPower").style.display = "none";
           document.getElementById("titleScreen").classList.add("show");
           buildWorldGrid();
         }, 1100);
@@ -719,28 +1033,58 @@
     }
 
     function finishLevel() {
-      save.coins += runCoins;
-      if (currentLevel >= save.unlocked) save.unlocked = Math.min(100, currentLevel + 1);
-      if (currentLevel > save.best) save.best = currentLevel;
-      persist();
+      if (!sandboxMode) {
+        save.coins += runCoins;
+        if (currentLevel >= save.unlocked) save.unlocked = Math.min(100, currentLevel + 1);
+        if (currentLevel > save.best) save.best = currentLevel;
+        persist();
+      }
       flash("COURSE CLEAR!");
       mode = "clear";
       setTimeout(() => {
-        if (currentLevel >= 100) {
+        if (!sandboxMode && currentLevel >= 100) {
+          activePower = null;
           mode = "menu";
           flash("YOU BEAT ALL 100!");
           document.getElementById("hud").style.display = "none";
+          document.getElementById("hudPower").style.display = "none";
           document.getElementById("titleScreen").classList.add("show");
           buildWorldGrid();
         } else {
-          startLevel(currentLevel + 1);
+          const next = currentLevel >= 100 ? 1 : currentLevel + 1;
+          showPowerPicker(next);
         }
-      }, 1200);
+      }, 900);
     }
 
-    function playerBounds() {
-      playerBox.min.set(player.pos.x - player.width / 2, player.pos.y, player.pos.z - player.width / 2);
-      playerBox.max.set(player.pos.x + player.width / 2, player.pos.y + player.height, player.pos.z + player.width / 2);
+    function distPointSeg(px, py, pz, ax, ay, az, bx, by, bz) {
+      const abx = bx - ax, aby = by - ay, abz = bz - az;
+      const apx = px - ax, apy = py - ay, apz = pz - az;
+      const ab2 = abx * abx + aby * aby + abz * abz || 1;
+      let t = (apx * abx + apy * aby + apz * abz) / ab2;
+      if (t < 0) t = 0;
+      else if (t > 1) t = 1;
+      const dx = ax + abx * t - px, dy = ay + aby * t - py, dz = az + abz * t - pz;
+      return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    function hitsRedBar(h) {
+      const yaw = h.mesh.rotation.y;
+      const half = h.len * 0.5;
+      const dx = Math.cos(yaw);
+      const dz = -Math.sin(yaw);
+      const cx = h.mesh.position.x;
+      const cy = h.mesh.position.y;
+      const cz = h.mesh.position.z;
+      const ax = cx - dx * half, az = cz - dz * half;
+      const bx = cx + dx * half, bz = cz + dz * half;
+      const pr = 0.16;
+      const need = h.radius + pr;
+      const ys = [player.pos.y + 0.22, player.pos.y + 0.72, player.pos.y + 1.18];
+      for (let i = 0; i < ys.length; i++) {
+        if (distPointSeg(player.pos.x, ys[i], player.pos.z, ax, cy, az, bx, cy, bz) < need) return true;
+      }
+      return false;
     }
 
     function updateCourse(dt, time) {
@@ -757,7 +1101,7 @@
         }
       }
       for (const h of course.hazards) {
-        h.mesh.rotation.y += dt * h.spd;
+        h.mesh.rotation.y += dt * h.spd * (hasPower("timeWarp") ? 0.35 : 1);
       }
       for (const c of course.coins) {
         if (!c.taken) c.mesh.rotation.z += dt * 3;
@@ -767,7 +1111,8 @@
 
     function physics(dt) {
       const sprint = keys["ShiftLeft"] || keys["ShiftRight"];
-      const speed = (sprint ? 13.5 : 8.6) * (course.world.gimmick === "star" ? 1.12 : 1);
+      let speed = (sprint || hasPower("turbo") ? 13.5 : 8.6) * (course.world.gimmick === "star" ? 1.12 : 1);
+      if (hasPower("turbo")) speed *= 1.18;
       const yaw = mouse.yaw;
       let ix = ((keys["KeyD"] || keys["ArrowLeft"]) ? 1 : 0) - ((keys["KeyA"] || keys["ArrowRight"]) ? 1 : 0);
       let iz = ((keys["KeyW"] || keys["ArrowUp"]) ? 1 : 0) - ((keys["KeyS"] || keys["ArrowDown"]) ? 1 : 0);
@@ -775,26 +1120,36 @@
       const wishX = ix * Math.cos(yaw) + iz * Math.sin(yaw);
       const wishZ = -ix * Math.sin(yaw) + iz * Math.cos(yaw);
 
-      player.coyote = player.onGround ? 0.12 : player.coyote - dt;
-      if (keys["Space"]) player.jumpBuf = 0.12;
+      const coyoteMax = hasPower("hover") ? 0.38 : 0.12;
+      player.coyote = player.onGround ? coyoteMax : player.coyote - dt;
+      if (keys["Space"] && !player.spacePrev) player.jumpBuf = hasPower("hover") ? 0.22 : 0.12;
       else player.jumpBuf -= dt;
+      player.spacePrev = !!keys["Space"];
 
       const grounded = player.onGround;
-      let fric = grounded ? 0.0001 : 1;
       const accel = grounded ? 70 : 18;
       player.vel.x += (wishX * speed - player.vel.x) * Math.min(1, accel * dt * (grounded ? 1 : 0.35));
       player.vel.z += (wishZ * speed - player.vel.z) * Math.min(1, accel * dt * (grounded ? 1 : 0.35));
 
       if (player.jumpBuf > 0 && player.coyote > 0) {
-        player.vel.y = 10.4;
+        player.vel.y = hasPower("superJump") ? 15.2 : 10.4;
         player.onGround = false;
         player.coyote = 0;
+        player.jumpBuf = 0;
+        player.airJumps = hasPower("doubleJump") ? 1 : 0;
+      } else if (player.jumpBuf > 0 && !player.onGround && player.airJumps > 0) {
+        player.vel.y = hasPower("superJump") ? 13.2 : 9.2;
+        player.airJumps -= 1;
         player.jumpBuf = 0;
       }
       if (!keys["Space"] && player.vel.y > 3.2) player.vel.y *= 0.92;
 
-      player.vel.y -= course.gravity * dt;
-      if (player.vel.y < -28) player.vel.y = -28;
+      let grav = course.gravity;
+      if (hasPower("lowGrav")) grav *= 0.46;
+      if (hasPower("feather") && keys["Space"] && player.vel.y < 0) grav *= 0.22;
+      player.vel.y -= grav * dt;
+      const fallCap = hasPower("feather") || hasPower("lowGrav") ? -14 : -28;
+      if (player.vel.y < fallCap) player.vel.y = fallCap;
 
       player.pos.x += player.vel.x * dt;
       player.pos.y += player.vel.y * dt;
@@ -802,19 +1157,22 @@
 
       player.onGround = false;
       let stand = null;
-      playerBounds();
       for (const p of course.plats) {
         if (p._off) continue;
         const top = p.y + p.h / 2;
-        const minx = p.x - p.w / 2, maxx = p.x + p.w / 2;
-        const minz = p.z - p.d / 2, maxz = p.z + p.d / 2;
+        const padW = p.w, padD = p.d;
+        const minx = p.x - padW / 2, maxx = p.x + padW / 2;
+        const minz = p.z - padD / 2, maxz = p.z + padD / 2;
         const insideXZ = player.pos.x > minx && player.pos.x < maxx && player.pos.z > minz && player.pos.z < maxz;
-        if (insideXZ && player.vel.y <= 0 && player.pos.y <= top + 0.12 && player.pos.y >= top - 0.85) {
+        const snap = hasPower("sticky") ? 1.35 : 0.85;
+        if (insideXZ && player.vel.y <= 0 && player.pos.y <= top + 0.12 && player.pos.y >= top - snap) {
           player.pos.y = top;
           player.vel.y = 0;
           player.onGround = true;
+          player.airJumps = hasPower("doubleJump") ? 1 : 0;
           stand = p;
-          if (p.bounce) player.vel.y = p.bounce;
+          if (p.bounce) player.vel.y = p.bounce * (hasPower("superJump") ? 1.2 : 1);
+          else if (hasPower("spring")) player.vel.y = 6.4;
           if (p.conveyor) player.pos.z += p.conveyor * dt;
           if (p.type === "crumble") {
             p._crumble = (p._crumble || 0) + dt;
@@ -823,7 +1181,7 @@
             p.mesh.material.transparent = true;
             if (p._crumble > 0.85) { p._off = true; p.mesh.visible = false; }
           }
-          if (p.friction < 1) {
+          if (p.friction < 1 && !hasPower("sticky")) {
             player.vel.x *= 0.985 + p.friction * 0.01;
             player.vel.z *= 0.985 + p.friction * 0.01;
           }
@@ -842,17 +1200,20 @@
         else player.pos.y += osc * dt * 0.15;
       }
 
-      playerBounds();
       for (const h of course.hazards) {
-        tmpBox.setFromObject(h.mesh);
-        if (tmpBox.intersectsBox(playerBox)) {
+        if (hitsRedBar(h)) {
           die("hazard");
           return;
         }
       }
+      const coinRange = hasPower("magnet") ? 5.4 : 1.15;
       for (const c of course.coins) {
         if (c.taken) continue;
-        if (c.mesh.position.distanceTo(player.pos) < 1.15) {
+        const dist = c.mesh.position.distanceTo(player.pos);
+        if (hasPower("magnet") && dist < 5.4 && dist > 1) {
+          c.mesh.position.lerp(player.pos.clone().add(new THREE.Vector3(0, 1.1, 0)), 0.12);
+        }
+        if (dist < coinRange) {
           c.taken = true;
           c.mesh.visible = false;
           runCoins += 1;
@@ -863,13 +1224,69 @@
       if (player.pos.y < course.killY) die("fall");
 
       player.mesh.position.copy(player.pos);
-      const face = Math.atan2(player.vel.x, player.vel.z);
-      if (Math.hypot(player.vel.x, player.vel.z) > 0.4) {
-        player.mesh.rotation.y += (face - player.mesh.rotation.y) * 0.18;
+      const spd = Math.hypot(player.vel.x, player.vel.z);
+      if (spd > 0.4) {
+        const face = Math.atan2(player.vel.x, player.vel.z);
+        let d = face - player.mesh.rotation.y;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        player.mesh.rotation.y += d * 0.2;
       }
-      const bob = player.onGround ? Math.sin(performance.now() / 80) * Math.min(1, Math.hypot(player.vel.x, player.vel.z) / 10) : 0;
-      player.hats.armL.rotation.x = bob;
-      player.hats.armR.rotation.x = -bob;
+      animateRunner(dt, spd);
+    }
+
+    function animateRunner(dt, spd) {
+      const r = player.rig;
+      if (!r) return;
+      const moving = player.onGround && spd > 0.45;
+      const sprint = !!(keys["ShiftLeft"] || keys["ShiftRight"]);
+      player.animT += dt * (moving ? (sprint ? 11.5 : 8.2) * Math.min(1.15, spd / 8) : 2.2);
+      const t = player.animT;
+      const a = moving ? Math.min(1, spd / 7) : 0;
+
+      if (!player.onGround) {
+        r.thighL.rotation.x = -0.55;
+        r.thighR.rotation.x = -0.28;
+        r.calfL.rotation.x = 0.95;
+        r.calfR.rotation.x = 0.55;
+        r.armL.rotation.x = -0.9;
+        r.armR.rotation.x = -0.7;
+        r.elbowL.rotation.x = 0.5;
+        r.elbowR.rotation.x = 0.35;
+        r.spine.rotation.x = 0.18;
+        r.hips.rotation.z = 0;
+        r.head.rotation.x = 0.12;
+        return;
+      }
+
+      const swing = Math.sin(t) * 0.85 * a;
+      r.thighL.rotation.x = swing;
+      r.thighR.rotation.x = -swing;
+      r.calfL.rotation.x = Math.max(0.05, -Math.sin(t) * 1.05 * a);
+      r.calfR.rotation.x = Math.max(0.05, Math.sin(t) * 1.05 * a);
+      r.armL.rotation.x = -swing * 0.95;
+      r.armR.rotation.x = swing * 0.95;
+      r.elbowL.rotation.x = 0.45 + Math.max(0, -swing) * 0.5;
+      r.elbowR.rotation.x = 0.45 + Math.max(0, swing) * 0.5;
+      r.hips.rotation.y = Math.sin(t) * 0.1 * a;
+      r.hips.rotation.z = Math.cos(t) * 0.04 * a;
+      r.spine.rotation.x = 0.08 + a * 0.12;
+      r.chest.rotation.y = -Math.sin(t) * 0.08 * a;
+      r.head.rotation.x = -0.04;
+      if (!moving) {
+        const idle = Math.sin(t) * 0.03;
+        r.thighL.rotation.x = idle;
+        r.thighR.rotation.x = -idle * 0.6;
+        r.calfL.rotation.x = 0.08;
+        r.calfR.rotation.x = 0.08;
+        r.armL.rotation.x = idle;
+        r.armR.rotation.x = -idle;
+        r.elbowL.rotation.x = 0.2;
+        r.elbowR.rotation.x = 0.2;
+        r.spine.rotation.x = idle * 0.4;
+        r.hips.rotation.y = 0;
+        r.hips.rotation.z = 0;
+      }
     }
 
     function updateCamera(dt) {
@@ -912,11 +1329,23 @@
       keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
       if (e.code === "KeyR" && mode === "play") spawnPlayer();
+      if (sandboxMode && mode === "play" && e.code === "KeyP") {
+        document.exitPointerLock();
+        showPowerPicker(currentLevel);
+      }
+      if (sandboxMode && mode === "play" && e.code === "Period") {
+        startLevel(currentLevel >= 100 ? 1 : currentLevel + 1);
+      }
+      if (sandboxMode && mode === "play" && e.code === "Comma") {
+        startLevel(currentLevel <= 1 ? 100 : currentLevel - 1);
+      }
       if (e.code === "Escape") {
         document.exitPointerLock();
         mode = "menu";
         document.getElementById("hud").style.display = "none";
         document.getElementById("hint").style.display = "none";
+        document.getElementById("hudPower").style.display = "none";
+        document.getElementById("powerScreen").classList.remove("show");
         document.getElementById("titleScreen").classList.add("show");
         buildWorldGrid();
       }
@@ -939,7 +1368,7 @@
       grid.innerHTML = "";
       WORLDS.forEach((w, i) => {
         const first = i * 10 + 1;
-        const locked = save.unlocked < first;
+        const locked = !sandboxMode && save.unlocked < first;
         const b = document.createElement("button");
         b.className = "world-btn";
         b.style.background = w.btn;
@@ -964,7 +1393,7 @@
         btn.className = "lvl";
         btn.textContent = (i + 1) + "-" + s;
         btn.style.background = WORLDS[i].btn;
-        btn.disabled = n > save.unlocked;
+        btn.disabled = !sandboxMode && n > save.unlocked;
         btn.onclick = () => startLevel(n);
         grid.appendChild(btn);
       }
@@ -976,10 +1405,19 @@
     };
     document.getElementById("btnStartWorld").onclick = () => {
       const first = currentWorld * 10 + 1;
-      const lvl = Math.min(save.unlocked, currentWorld * 10 + 10);
+      const lvl = sandboxMode ? first : Math.min(save.unlocked, currentWorld * 10 + 10);
       startLevel(Math.max(first, lvl));
     };
-    document.getElementById("btnContinue").onclick = () => startLevel(Math.min(100, save.unlocked));
+    document.getElementById("btnContinue").onclick = () => {
+      sandboxMode = false;
+      document.querySelector("#titleScreen .tag").textContent = "A 100-course 3rd-person deathrun · 10 worlds · Super Course vibes";
+      startLevel(Math.min(100, save.unlocked));
+    };
+    document.getElementById("btnSandbox").onclick = () => {
+      sandboxMode = true;
+      document.querySelector("#titleScreen .tag").textContent = "SANDBOX · All 100 courses unlocked · Infinite lives · Pick any world";
+      buildWorldGrid();
+    };
     document.getElementById("btnReset").onclick = () => {
       save.unlocked = 1; save.coins = 0; save.best = 1; persist(); buildWorldGrid();
     };
