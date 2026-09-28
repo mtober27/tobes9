@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Lilita+One&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
+    /* Page colors, full-screen layout, and the chunky game font. */
     :root {
       --ink: #1a1333;
       --cream: #fff8e8;
@@ -23,9 +24,11 @@
       font-family: Fredoka, system-ui, sans-serif;
       color: var(--cream);
     }
+    /* The 3D view fills the window. Menus sit on top of it. */
     canvas#game { display: block; width: 100%; height: 100%; }
     .ui { position: fixed; inset: 0; pointer-events: none; }
     .ui > * { pointer-events: auto; }
+    /* Top bar during a run: course number, world name, coins, and lives. */
     #hud {
       position: absolute;
       top: 14px;
@@ -62,6 +65,7 @@
       text-shadow: 0 3px 0 #000;
     }
     .world-chip p { margin: 2px 0 0; font-weight: 700; opacity: .9; }
+    /* Control reminder along the bottom of the screen. */
     #hint {
       position: absolute;
       bottom: 18px;
@@ -75,6 +79,7 @@
       font-size: 13px;
       white-space: nowrap;
     }
+    /* Full-screen menus: title, world select, and the power-up picker. */
     #screens { position: absolute; inset: 0; }
     .screen {
       position: absolute;
@@ -110,6 +115,7 @@
       color: transparent;
     }
     .tag { margin: 4px 0 16px; font-weight: 700; opacity: .75; }
+    /* The ten world buttons on the title screen. */
     .worlds {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -150,6 +156,7 @@
       color: #3b1d7a;
       box-shadow: 0 5px 0 #c9b7ff;
     }
+    /* The ten course buttons inside one world. */
     .levels {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -167,6 +174,7 @@
       box-shadow: 0 4px 0 rgba(0,0,0,.2);
     }
     .lvl:disabled { opacity: .4; cursor: not-allowed; }
+    /* Cards you click to equip a power-up after a clear. */
     #powerGrid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -191,6 +199,7 @@
     .power-card .ico { font-size: 32px; display: block; margin-bottom: 6px; }
     .power-card strong { font-family: "Lilita One", cursive; font-size: 22px; display: block; }
     .power-card span { display: block; margin-top: 6px; font-weight: 700; opacity: .95; font-size: 14px; line-height: 1.3; }
+    /* Pill under the HUD that names the power you currently have. */
     #hudPower {
       display: none;
       position: absolute;
@@ -204,6 +213,7 @@
       font-weight: 700;
       white-space: nowrap;
     }
+    /* Big center text such as START, OUCH, or COURSE CLEAR. */
     #toast {
       position: absolute;
       top: 40%;
@@ -218,8 +228,10 @@
   </style>
 </head>
 <body>
+  <!-- Three.js draws the course and the runner into this canvas. -->
   <canvas id="game"></canvas>
   <div class="ui">
+    <!-- Numbers the player sees while running. -->
     <div id="hud">
       <div class="badge"><span>Course</span><b id="hudLevel">1-1</b></div>
       <div class="world-chip"><h2 id="hudWorld">Leafy Grove</h2><p id="hudSub">World 1</p></div>
@@ -229,6 +241,7 @@
     <div id="hint">Click to look around · WASD move · Space jump · Shift sprint · R restart course</div>
     <div id="toast"></div>
     <div id="screens">
+      <!-- Map of all ten worlds, plus continue, sandbox, and reset. -->
       <section class="screen show" id="titleScreen">
         <div class="panel">
           <h1>STARPATH DASH</h1>
@@ -238,10 +251,11 @@
             <button class="play" id="btnContinue">Continue adventure</button>
             <button class="play" id="btnSandbox" style="background:linear-gradient(180deg,#7dd3fc,#a855f7);color:#1a1333;box-shadow:0 5px 0 #6d28d9">Sandbox</button>
             <button class="ghost" id="btnReset">Reset save</button>
-            <a class="ghost" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">Hangman</a>
+            <a class="ghost" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">All games</a>
           </div>
         </div>
       </section>
+      <!-- Courses 1–10 inside the world you picked. -->
       <section class="screen" id="worldScreen">
         <div class="panel">
           <h1 id="worldTitle">World</h1>
@@ -253,6 +267,7 @@
           </div>
         </div>
       </section>
+      <!-- Shown after a clear so the player can pick the next power-up. -->
       <section class="screen" id="powerScreen">
         <div class="panel">
           <h1>COURSE CLEAR!</h1>
@@ -264,6 +279,7 @@
   </div>
 
   <script>
+    /* Ten worlds. Each one owns 10 courses and a visual gimmick. */
     const WORLDS = [
       { name: "Leafy Grove", tag: "Vines, timber trails, river mist", sky: 0x3ec5ff, fog: 0x6ee7a0, fogFar: 175, ground: 0x16a34a, plat: 0xf59e0b, plat2: 0x4ade80, accent: 0xffee00, gimmick: "jungle", btn: "linear-gradient(180deg,#4ade80,#16a34a)" },
       { name: "Candy Kingdom", tag: "Frosting roads and gumdrop towers", sky: 0xff6ec7, fog: 0xff9ad5, fogFar: 165, ground: 0xff3d9a, plat: 0xfff5ff, plat2: 0xff2e9a, accent: 0xc026d3, gimmick: "candy", btn: "linear-gradient(180deg,#ff6ec7,#d946ef)" },
@@ -277,6 +293,7 @@
       { name: "Star Palace", tag: "The final rainbow road in space", sky: 0x0f172a, fog: 0x4c1d95, fogFar: 210, ground: 0x1e1b4b, plat: 0xffdd00, plat2: 0xd946ef, accent: 0x22f0c0, gimmick: "star", btn: "linear-gradient(180deg,#ffdd00,#d946ef)" }
     ];
 
+    /* Power-ups offered after a course clear. One stays on for 3 attempts. */
     const POWERS = [
       { id: "superJump", name: "Super Jump", ico: "🚀", desc: "Launch way higher. Gaps feel short.", bg: "linear-gradient(180deg,#ff9f1c,#ff006e)" },
       { id: "lowGrav", name: "Moon Gravity", ico: "🌙", desc: "Floaty jumps and a slow, soft fall.", bg: "linear-gradient(180deg,#60a5fa,#312e81)" },
@@ -292,6 +309,7 @@
       { id: "spring", name: "Spring Soles", ico: "👟", desc: "Every landing pops you up a little.", bg: "linear-gradient(180deg,#86efac,#f59e0b)" }
     ];
 
+    /* Browser save: furthest unlocked course, banked coins, and best clear. */
     const SAVE_KEY = "starpath-dash-v1";
     const save = loadSave();
     function loadSave() {
@@ -303,6 +321,7 @@
     }
     function persist() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
 
+    /* 3D renderer, camera, and the lights that color the course. */
     const canvas = document.getElementById("game");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -329,6 +348,7 @@
     const fill = new THREE.PointLight(0xffffff, 0.35, 80);
     scene.add(fill);
 
+    /* What the player is doing right now: keys, camera aim, lives, and mode. */
     const keys = {};
     const mouse = { locked: false, yaw: 0, pitch: 0.18 };
     let mode = "menu";
@@ -341,6 +361,7 @@
     let activePower = null;
     let pendingLevel = 1;
 
+    /* The runner: position, speed, jump memory, and the body parts that animate. */
     const player = {
       mesh: null,
       pos: new THREE.Vector3(),
@@ -361,6 +382,7 @@
     let decorRoot = new THREE.Group();
     scene.add(decorRoot);
 
+    /* Same course number always builds the same layout. */
     function mulberry32(a) {
       return function () {
         let t = (a += 0x6d2b79f5);
@@ -370,6 +392,7 @@
       };
     }
 
+    /* Keep the 3D view matched to the browser window. */
     function resize() {
       const w = innerWidth, h = innerHeight;
       renderer.setSize(w, h, false);
@@ -379,6 +402,7 @@
     addEventListener("resize", resize);
     resize();
 
+    /* Shared helpers for soft platforms and colored materials. */
     function roundedBoxGeo(w, h, d, radius) {
       const r = Math.max(0.05, Math.min(radius ?? Math.min(w, d, h) * 0.28, w * 0.45, d * 0.45, h * 0.48));
       const shape = new THREE.Shape();
@@ -428,6 +452,7 @@
       return m;
     }
 
+    /* Builds the hoodie runner out of simple shapes and stores the joints. */
     function makePlayer() {
       const skin = shade(0xc68642, { roughness: 0.55 });
       const jeans = shade(0x243652, { roughness: 0.88 });
@@ -527,6 +552,7 @@
     }
     makePlayer();
 
+    /* Throws away the previous course before a new one is built. */
     function clearCourse() {
       if (!course) return;
       course.group.traverse((o) => {
@@ -541,6 +567,7 @@
       course = null;
     }
 
+    /* Shortcuts for boxes, cylinders, spheres, and ground mounds. */
     function addBox(group, w, h, d, x, y, z, color, opts = {}) {
       const radius = opts.radius ?? Math.min(w, d) * 0.22;
       const mesh = new THREE.Mesh(roundedBoxGeo(w, h, d, radius), shade(color, opts));
@@ -580,6 +607,7 @@
       return m;
     }
 
+    /* Background trees. They are scenery only and cannot be stood on. */
     function addBroadleafTree(x, z, rng, floorY) {
       const base = floorY + 0.05;
       addMound(x, z, base, rng() < 0.5 ? 0x4ade80 : 0x22c55e, 2.4 + rng() * 0.8, 0.32, 2.4 + rng() * 0.6);
@@ -639,6 +667,7 @@
       }
     }
 
+    /* Fills the sides of the path with that world's trees, candy, city, or lava rocks. */
     function decorateWorld(world, rng, lengthZ, floorY) {
       const gimmick = world.gimmick;
       const count = gimmick === "jungle" || gimmick === "ice" || gimmick === "haunt" ? 36 : 26;
@@ -703,6 +732,8 @@
       }
     }
 
+    /* Builds one course: platforms, coins, red bars, checkpoints, and the finish flag.
+       Higher course numbers mean narrower pads, wider gaps, and more moving hazards. */
     function generateCourse(levelNum) {
       clearCourse();
       const worldIndex = Math.floor((levelNum - 1) / 10);
@@ -756,9 +787,11 @@
         return p;
       }
 
+      /* First pad is always a safe checkpoint to spawn on. */
       pushPlat({ w: 6.5, d: 8, x: 0, y: 0, z: 0, color: world.plat, checkpoint: true, stripe: true });
       z = 6;
 
+      /* Each step forward is one platform: gap, height, and a random hazard type. */
       for (let i = 0; i < segments; i++) {
         const roll = rng();
         const gap = gapBase * (0.75 + rng() * 0.55);
@@ -835,12 +868,14 @@
         }
       }
 
+      /* Gold pad and flag. Standing on it clears the course. */
       z += 5 + t * 2;
       pushPlat({ w: 7, d: 7, x: 0, y: Math.max(0, y), z, color: 0xffd24a, finish: true, stripe: true, checkpoint: true });
       const flag = addCyl(group, 0.07, 0.07, 4.2, 0, y + 2.4, z, 0xffffff, { seg: 12, shininess: 80 });
       addBall(group, 0.16, 0, y + 4.55, z, 0xffd24a, { shininess: 90 });
       const banner = addBox(group, 1.6, 1, 0.08, 0.85, y + 3.6, z, 0xff4d6d, { radius: 0.22, shininess: 55 });
 
+      /* Ground under the course. Lava worlds put a kill plane just above it. */
       const floorY = world.gimmick === "lava" ? -6.2 : (world.gimmick === "sky" || world.gimmick === "star" ? -3.0 : -2.6);
       const floor = new THREE.Mesh(
         new THREE.CircleGeometry(220, 64),
@@ -865,6 +900,7 @@
       return course;
     }
 
+    /* Drops the runner on a checkpoint and resets jump and shield for that attempt. */
     function spawnPlayer(at) {
       player.pos.copy(at || player.spawn);
       player.vel.set(0, 0, 0);
@@ -874,6 +910,7 @@
       player.mesh.position.copy(player.pos);
     }
 
+    /* True when that power is equipped and still has attempts left on this course. */
     function hasPower(id) {
       if (!activePower || activePower.id !== id) return false;
       if (sandboxMode) return true;
@@ -886,6 +923,7 @@
       return activePower.attempts > 0 && activePower.level === currentLevel;
     }
 
+    /* Shuffles the power list and hands back three of them. */
     function pickThreePowers() {
       const bag = POWERS.slice();
       for (let i = bag.length - 1; i > 0; i--) {
@@ -895,6 +933,7 @@
       return bag.slice(0, 3);
     }
 
+    /* Turns a list of powers into the cards on the picker screen. */
     function fillPowerGrid(list, nextLevel, includeSkip) {
       const grid = document.getElementById("powerGrid");
       grid.innerHTML = "";
@@ -924,6 +963,7 @@
       }
     }
 
+    /* Opens the power screen and waits for a choice before the next course. */
     function showPowerPicker(nextLevel) {
       pendingLevel = nextLevel;
       mode = "pick";
@@ -940,6 +980,7 @@
       document.getElementById("powerScreen").classList.add("show");
     }
 
+    /* Starts a course: build it, place the runner, show the HUD, and begin play. */
     function startLevel(levelNum) {
       currentLevel = levelNum;
       currentWorld = Math.floor((levelNum - 1) / 10);
@@ -973,6 +1014,7 @@
       updateHud();
     }
 
+    /* Refreshes the course label, coin count, lives, and active power. */
     function updateHud() {
       document.getElementById("hudLevel").textContent = (currentWorld + 1) + "-" + (((currentLevel - 1) % 10) + 1);
       document.getElementById("hudWorld").textContent = WORLDS[currentWorld].name;
@@ -989,6 +1031,7 @@
       }
     }
 
+    /* Shows a short message in the middle of the screen. */
     function flash(text) {
       const el = document.getElementById("toast");
       el.textContent = text;
@@ -996,6 +1039,8 @@
       toastTimer = 1.4;
     }
 
+    /* A fall or a red bar. Spends a life, and a power attempt, then respawns.
+       Three deaths end the course and send you back to the map. Sandbox just retries. */
     function die(reason) {
       if (reason === "hazard" && hasPower("shield") && player.shieldReady) {
         player.shieldReady = false;
@@ -1032,6 +1077,8 @@
       updateHud();
     }
 
+    /* Course clear: bank coins, unlock the next course, then offer a power-up.
+       Course 100 ends the adventure instead. */
     function finishLevel() {
       if (!sandboxMode) {
         save.coins += runCoins;
@@ -1057,6 +1104,7 @@
       }, 900);
     }
 
+    /* Checks whether the runner's body touches a spinning red bar. */
     function distPointSeg(px, py, pz, ax, ay, az, bx, by, bz) {
       const abx = bx - ax, aby = by - ay, abz = bz - az;
       const apx = px - ax, apy = py - ay, apz = pz - az;
@@ -1087,6 +1135,7 @@
       return false;
     }
 
+    /* Moves platforms, spins hazards, and twirls coins each frame. */
     function updateCourse(dt, time) {
       for (const p of course.plats) {
         if (p.type === "move") {
@@ -1109,6 +1158,8 @@
       course.banner.rotation.y = Math.sin(time * 2) * 0.15;
     }
 
+    /* Running, jumping, landing, coins, and death checks for one frame.
+       Also applies ice, bounce pads, crumbling pads, conveyors, and power-ups. */
     function physics(dt) {
       const sprint = keys["ShiftLeft"] || keys["ShiftRight"];
       let speed = (sprint || hasPower("turbo") ? 13.5 : 8.6) * (course.world.gimmick === "star" ? 1.12 : 1);
@@ -1235,6 +1286,7 @@
       animateRunner(dt, spd);
     }
 
+    /* Swings the runner's arms and legs while moving, and poses a jump in the air. */
     function animateRunner(dt, spd) {
       const r = player.rig;
       if (!r) return;
@@ -1289,6 +1341,7 @@
       }
     }
 
+    /* Keeps the camera behind the runner and widens the view while sprinting. */
     function updateCamera(dt) {
       const dist = 7.4;
       const height = 3.05 + mouse.pitch * 2.4;
@@ -1305,6 +1358,7 @@
       camera.updateProjectionMatrix();
     }
 
+    /* The frame loop. Menus show a still camera. Play updates the course and runner. */
     function tick() {
       requestAnimationFrame(tick);
       const dt = Math.min(0.033, clock.getDelta());
@@ -1325,6 +1379,7 @@
     }
     tick();
 
+    /* Keyboard, mouse look, and the title-screen buttons. */
     addEventListener("keydown", (e) => {
       keys[e.code] = true;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -1363,6 +1418,7 @@
       mouse.pitch = Math.max(-0.25, Math.min(0.7, mouse.pitch - e.movementY * 0.002));
     });
 
+    /* Draws the ten world buttons and locks worlds you have not reached yet. */
     function buildWorldGrid() {
       const grid = document.getElementById("worldGrid");
       grid.innerHTML = "";
@@ -1379,6 +1435,7 @@
       });
     }
 
+    /* Draws courses 1–10 for one world. Locked courses stay disabled. */
     function openWorld(i) {
       currentWorld = i;
       document.getElementById("titleScreen").classList.remove("show");
@@ -1399,6 +1456,7 @@
       }
     }
 
+    /* Title-screen actions: back, play, continue, sandbox, and wipe the save. */
     document.getElementById("btnBack").onclick = () => {
       document.getElementById("worldScreen").classList.remove("show");
       document.getElementById("titleScreen").classList.add("show");
@@ -1422,8 +1480,8 @@
       save.unlocked = 1; save.coins = 0; save.best = 1; persist(); buildWorldGrid();
     };
 
+    /* Show the world map, and build course 1 so the menu has something behind it. */
     buildWorldGrid();
-    generateCourse(1);
     player.pos.set(0, 1, 0);
   </script>
 </body>

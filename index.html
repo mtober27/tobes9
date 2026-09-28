@@ -3,21 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON MAN HANGMAN</title>
+  <title>Mike's Game Room</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0b1220;
-      --panel: #141c2e;
-      --steel: #2a354d;
-      --gold: #f5c518;
-      --amber: #ff8a00;
-      --crimson: #e63946;
-      --cyan: #2ec4b6;
-      --ice: #f4f7fb;
-      --muted: #9aa7c2;
+      --ink: #1a120c;
+      --cream: #fff6e4;
+      --gold: #ffc857;
+      --wood: #3a2a1c;
+      --wood-dark: #24180f;
     }
 
     * { box-sizing: border-box; }
@@ -25,467 +21,254 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Oswald, sans-serif;
-      color: var(--ice);
+      color: var(--cream);
+      font-family: Outfit, "Trebuchet MS", sans-serif;
       background:
-        radial-gradient(1200px 500px at 10% -10%, #1d4ed8 0%, transparent 55%),
-        radial-gradient(900px 400px at 100% 0%, #9a3412 0%, transparent 50%),
-        linear-gradient(160deg, #070b14, var(--bg) 40%, #111827);
+        radial-gradient(900px 420px at 50% -10%, rgba(255, 200, 87, .28), transparent 60%),
+        radial-gradient(700px 500px at 100% 100%, rgba(46, 230, 199, .12), transparent 55%),
+        linear-gradient(180deg, #2a1c12 0%, #120e0b 38%, #0c0a09 100%);
     }
 
-    .wrap {
-      max-width: 980px;
+    .room {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 28px 20px 48px;
+      padding: 36px 20px 64px;
     }
 
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 16px;
-      margin-bottom: 22px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .kicker {
+      margin: 0 0 8px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+      color: #e7c27a;
     }
 
     h1 {
-      font-family: "Bebas Neue", sans-serif;
-      font-size: clamp(42px, 8vw, 72px);
-      letter-spacing: 3px;
       margin: 0;
-      line-height: 0.9;
-      background: linear-gradient(90deg, var(--gold), var(--amber), var(--crimson));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      font-family: "Lilita One", cursive;
+      font-size: clamp(44px, 12vw, 88px);
+      font-weight: 400;
+      letter-spacing: 1px;
+      line-height: .9;
+      color: #fff8e8;
+      text-shadow: 0 4px 0 #6b3a12, 0 10px 0 rgba(0, 0, 0, .25);
     }
 
-    .tag {
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-size: 13px;
-      margin-top: 6px;
+    .lede {
+      margin: 14px auto 0;
+      max-width: 32ch;
+      font-size: 18px;
+      line-height: 1.4;
+      color: #f3e2c4;
     }
 
-    .stats {
-      display: flex;
-      gap: 10px;
-    }
-
-    .chip {
-      background: var(--panel);
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 10px 14px;
-      min-width: 88px;
-      text-align: center;
-    }
-
-    .chip b {
-      display: block;
-      font-size: 22px;
-      color: var(--gold);
-    }
-
-    .chip span {
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    .board {
+    .shelf {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
     }
 
-    @media (max-width: 760px) {
-      header { flex-direction: column; align-items: flex-start; }
-      .board { grid-template-columns: 1fr; }
+    a.cabinet {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      background: linear-gradient(180deg, #5a3d28, var(--wood) 18%, var(--wood-dark));
+      border: 3px solid #c8924a;
+      border-radius: 22px;
+      padding: 12px 12px 16px;
+      box-shadow: 0 10px 0 #1a100a, 0 22px 30px rgba(0, 0, 0, .35);
     }
 
-    .panel {
-      background: color-mix(in srgb, var(--panel) 88%, black);
-      border: 1px solid #3b4a68;
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    a.cabinet:hover { transform: translateY(-4px); }
+    a.cabinet:active { transform: translateY(2px); box-shadow: 0 6px 0 #1a100a; }
+    a.cabinet:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 4px;
     }
 
-    svg {
+    .screen {
+      background: #070910;
+      border: 4px solid #120e0c;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 2px rgba(255, 214, 140, .25);
+    }
+
+    .screen svg {
+      display: block;
       width: 100%;
       height: auto;
-      display: block;
     }
 
-    .gallows { stroke: #64748b; stroke-width: 8; fill: none; stroke-linecap: round; }
-    .rope { stroke: #f5c518; stroke-width: 5; }
-    .man { stroke: #ff8a00; stroke-width: 7; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .man.head { fill: #0b1220; }
-    .hidden-part { opacity: 0; }
-    .show-part { opacity: 1; transition: opacity 180ms ease; }
-
-    .category {
-      display: inline-block;
-      background: linear-gradient(90deg, #1d4ed8, #0ea5e9);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 999px;
-      letter-spacing: 1.6px;
-      text-transform: uppercase;
-      font-size: 12px;
-      margin-bottom: 16px;
+    .cabinet h2 {
+      margin: 14px 4px 6px;
+      font-family: "Lilita One", cursive;
+      font-weight: 400;
+      font-size: 28px;
+      letter-spacing: .4px;
+      line-height: 1;
     }
 
-    .word {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-height: 72px;
-      align-items: center;
-      margin-bottom: 18px;
+    .cabinet p {
+      margin: 0 4px;
+      min-height: 4.4em;
+      color: #f6e7cf;
+      line-height: 1.4;
+      font-size: 15px;
     }
 
-    .slot {
-      width: 42px;
-      height: 54px;
-      border-bottom: 4px solid var(--gold);
-      display: grid;
-      place-items: center;
-      font-family: "Bebas Neue", sans-serif;
-      font-size: 38px;
-      color: var(--ice);
-    }
-
-    .slot.space {
-      width: 22px;
-      border: 0;
-    }
-
-    form.guess-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    #letter {
-      width: 72px;
-      height: 64px;
-      text-align: center;
-      text-transform: uppercase;
-      font-family: "Bebas Neue", sans-serif;
-      font-size: 40px;
-      background: #0a1020;
-      color: var(--gold);
-      border: 3px solid var(--gold);
-      border-radius: 10px;
-      outline: none;
-    }
-
-    #letter:focus { box-shadow: 0 0 0 4px rgba(245, 197, 24, 0.25); }
-
-    button {
-      font-family: Oswald, sans-serif;
+    .controls {
+      margin: 10px 4px 14px;
+      color: #e7c27a;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 1.4px;
-      text-transform: uppercase;
-      border: 0;
-      cursor: pointer;
-      border-radius: 10px;
+      letter-spacing: .2px;
+      line-height: 1.35;
     }
 
-    .guess-btn {
-      flex: 1;
-      background: linear-gradient(90deg, var(--amber), var(--crimson));
-      color: white;
+    .play {
+      margin-top: auto;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      font-family: "Lilita One", cursive;
       font-size: 22px;
+      letter-spacing: .6px;
+      color: var(--ink);
+      background: linear-gradient(180deg, #ffe7a3, var(--gold));
+      border-radius: 14px;
+      padding: 12px 16px 10px;
+      box-shadow: 0 5px 0 #a56b12;
     }
 
-    .new-btn {
-      width: 100%;
-      margin-top: 12px;
-      background: var(--cyan);
-      color: #04221f;
-      padding: 12px;
-      font-size: 16px;
+    .play:hover { transform: translateY(-2px); }
+    .play:active { transform: translateY(3px); box-shadow: 0 2px 0 #a56b12; }
+    .play:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 3px;
     }
 
-    .guess-btn:disabled, .new-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hangman h2 { color: #f5c518; }
+    .dash h2 { color: #ffd24a; }
+    .bramble h2 { color: #2ee6c7; }
 
-    .status {
-      min-height: 28px;
-      margin: 0 0 14px;
-      color: var(--muted);
-      letter-spacing: 0.6px;
+    @media (max-width: 860px) {
+      .shelf { grid-template-columns: minmax(0, 1fr); max-width: 420px; margin: 0 auto; }
+      .cabinet p { min-height: 0; }
+      h1 { font-size: 46px; }
+      .lede { font-size: 16px; }
     }
-
-    .status.win { color: var(--cyan); }
-    .status.lose { color: var(--crimson); }
-
-    .bank-title {
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .bank {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-height: 46px;
-      padding: 10px;
-      background: #0a1020;
-      border: 1px dashed #4b5d80;
-      border-radius: 10px;
-    }
-
-    .miss {
-      width: 36px;
-      height: 36px;
-      display: grid;
-      place-items: center;
-      background: var(--crimson);
-      color: white;
-      border-radius: 6px;
-      font-family: "Bebas Neue", sans-serif;
-      font-size: 22px;
-    }
-
-    .empty-bank { color: #5b6b88; font-size: 14px; padding: 6px 4px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="room">
     <header>
-      <div>
-        <h1>IRON MAN HANGMAN</h1>
-        <div class="tag">Movies · Sports · Muscle · Machines · <a href="deathrun.html" style="color:#f5c518">Starpath Dash</a></div>
-      </div>
-      <div class="stats">
-        <div class="chip"><b id="wins">0</b><span>Wins</span></div>
-        <div class="chip"><b id="losses">0</b><span>Losses</span></div>
-        <div class="chip"><b id="left">7</b><span>Strikes left</span></div>
-      </div>
+      <p class="kicker">Three games, one lobby</p>
+      <h1>Game Room</h1>
+      <p class="lede">Every game so far. Hit play and it opens right away.</p>
     </header>
 
-    <div class="board">
-      <section class="panel">
-        <svg viewBox="0 0 220 260" aria-hidden="true">
-          <line class="gallows" x1="30" y1="240" x2="190" y2="240" />
-          <line class="gallows" x1="55" y1="240" x2="55" y2="20" />
-          <line class="gallows" x1="55" y1="20" x2="150" y2="20" />
-          <line class="gallows" x1="55" y1="70" x2="95" y2="20" />
-          <line class="rope" x1="150" y1="20" x2="150" y2="48" />
-          <circle id="p0" class="man head hidden-part" cx="150" cy="68" r="20" />
-          <line id="p1" class="man hidden-part" x1="150" y1="88" x2="150" y2="150" />
-          <line id="p2" class="man hidden-part" x1="150" y1="108" x2="118" y2="132" />
-          <line id="p3" class="man hidden-part" x1="150" y1="108" x2="182" y2="132" />
-          <line id="p4" class="man hidden-part" x1="150" y1="150" x2="124" y2="198" />
-          <line id="p5" class="man hidden-part" x1="150" y1="150" x2="176" y2="198" />
-          <line id="p6" class="man hidden-part" x1="140" y1="62" x2="148" y2="70" />
-          <line id="p7" class="man hidden-part" x1="148" y1="62" x2="140" y2="70" />
-        </svg>
-      </section>
+    <main class="shelf">
+      <a class="cabinet hangman" href="hangman.html">
+        <div class="screen" aria-hidden="true">
+          <svg viewBox="0 0 320 180">
+            <defs>
+              <linearGradient id="hangBg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1d4ed8" />
+                <stop offset="1" stop-color="#0b1220" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="180" fill="url(#hangBg)" />
+            <g stroke="#f5c518" stroke-width="6" fill="none" stroke-linecap="round">
+              <path d="M48 150 H150" />
+              <path d="M70 150 V36 H138" />
+              <path d="M70 62 L98 36" />
+              <path d="M138 36 V58" />
+            </g>
+            <circle cx="138" cy="76" r="16" fill="none" stroke="#ff8a00" stroke-width="5" />
+            <path d="M138 92 V128 M138 104 L116 120 M138 104 L160 120 M138 128 L122 152 M138 128 L154 152" fill="none" stroke="#e63946" stroke-width="5" stroke-linecap="round" />
+            <g fill="#f4f7fb">
+              <rect x="188" y="78" width="22" height="6" rx="2" />
+              <rect x="216" y="78" width="22" height="6" rx="2" />
+              <rect x="244" y="78" width="22" height="6" rx="2" />
+              <rect x="272" y="78" width="22" height="6" rx="2" />
+              <rect x="202" y="100" width="22" height="6" rx="2" opacity=".55" />
+              <rect x="230" y="100" width="22" height="6" rx="2" opacity=".55" />
+              <rect x="258" y="100" width="22" height="6" rx="2" opacity=".55" />
+            </g>
+          </svg>
+        </div>
+        <h2>Iron Man Hangman</h2>
+        <p>Guess the word before the strikes run out. The list mixes movies, sports, muscle, and machines.</p>
+        <div class="controls">Type a letter, then press Enter</div>
+        <span class="play">Play</span>
+      </a>
 
-      <section class="panel">
-        <div class="category" id="category">Sports</div>
-        <div class="word" id="word"></div>
-        <p class="status" id="status">Type a letter and hit Enter. Seven misses and you are toast.</p>
-        <form class="guess-row" id="form">
-          <input id="letter" maxlength="1" autocomplete="off" aria-label="Guess a letter" />
-          <button class="guess-btn" type="submit">Guess</button>
-        </form>
-        <div class="bank-title">Incorrect letter bank</div>
-        <div class="bank" id="bank"><span class="empty-bank">No misses yet. Stay locked in.</span></div>
-        <button class="new-btn" id="newGame" type="button">New match</button>
-      </section>
-    </div>
+      <a class="cabinet dash" href="deathrun.html">
+        <div class="screen" aria-hidden="true">
+          <svg viewBox="0 0 320 180">
+            <defs>
+              <linearGradient id="dashBg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#3b2a78" />
+                <stop offset="1" stop-color="#120c22" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="180" fill="url(#dashBg)" />
+            <circle cx="250" cy="36" r="3" fill="#fff6e4" />
+            <circle cx="70" cy="28" r="2" fill="#fff6e4" />
+            <circle cx="180" cy="22" r="2" fill="#ffd24a" />
+            <rect x="28" y="118" width="78" height="16" rx="4" fill="#6ee7b7" />
+            <rect x="128" y="96" width="64" height="16" rx="4" fill="#93c5fd" />
+            <rect x="214" y="74" width="78" height="16" rx="4" fill="#f9a8d4" />
+            <path d="M262 74 V48" stroke="#ffd24a" stroke-width="4" />
+            <path d="M262 48 L286 60 L262 60 Z" fill="#ffd24a" />
+            <circle cx="58" cy="104" r="10" fill="#fff8e8" />
+            <rect x="52" y="112" width="12" height="14" rx="3" fill="#ffd24a" />
+          </svg>
+        </div>
+        <h2>Starpath Dash</h2>
+        <p>A 100-course third-person deathrun. Ten worlds, gold flags, and a power-up after each clear.</p>
+        <div class="controls">Mouse look · WASD · Space jump · Shift sprint</div>
+        <span class="play">Play</span>
+      </a>
+
+      <a class="cabinet bramble" href="agent-bramble.html">
+        <div class="screen" aria-hidden="true">
+          <svg viewBox="0 0 320 180">
+            <defs>
+              <linearGradient id="brambleBg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#1a3a34" />
+                <stop offset="1" stop-color="#10141c" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="180" fill="url(#brambleBg)" />
+            <rect x="0" y="132" width="320" height="48" fill="#243044" />
+            <rect x="210" y="78" width="46" height="54" rx="6" fill="#ff5d73" />
+            <circle cx="233" cy="96" r="6" fill="#7ef6e4" />
+            <ellipse cx="108" cy="108" rx="36" ry="30" fill="#c47a3a" />
+            <circle cx="86" cy="78" r="12" fill="#c47a3a" />
+            <circle cx="130" cy="78" r="12" fill="#c47a3a" />
+            <ellipse cx="108" cy="112" rx="16" ry="12" fill="#f3d2a4" />
+            <rect x="78" y="96" width="60" height="14" rx="7" fill="#163832" />
+            <circle cx="128" cy="103" r="5" fill="#2ee6c7" />
+            <path d="M133 103 H250" stroke="#2ee6c7" stroke-width="4" stroke-linecap="round" opacity=".9" />
+          </svg>
+        </div>
+        <h2>Agent Bramble</h2>
+        <p>A side-scrolling bear spy. Grab a visor headset, free the scouts, and shut the boss down with a laser.</p>
+        <div class="controls">Arrows to run · Up jump · Down slide · Hold Space to fire</div>
+        <span class="play">Play</span>
+      </a>
+    </main>
   </div>
-
-  <script>
-    const WORDS = [
-      { word: "GLADIATOR", category: "Movies" },
-      { word: "DIE HARD", category: "Movies" },
-      { word: "ROCKY", category: "Movies" },
-      { word: "JAWS", category: "Movies" },
-      { word: "PREDATOR", category: "Movies" },
-      { word: "TERMINATOR", category: "Movies" },
-      { word: "MAD MAX", category: "Movies" },
-      { word: "TOP GUN", category: "Movies" },
-      { word: "GOODFELLAS", category: "Movies" },
-      { word: "BRAVEHEART", category: "Movies" },
-      { word: "HEAT", category: "Movies" },
-      { word: "CREED", category: "Movies" },
-      { word: "UNFORGIVEN", category: "Movies" },
-      { word: "RAGING BULL", category: "Movies" },
-      { word: "THE FUGITIVE", category: "Movies" },
-      { word: "TOUCHDOWN", category: "Sports" },
-      { word: "HOMERUN", category: "Sports" },
-      { word: "KNOCKOUT", category: "Sports" },
-      { word: "SLAM DUNK", category: "Sports" },
-      { word: "HAT TRICK", category: "Sports" },
-      { word: "BLITZ", category: "Sports" },
-      { word: "LINEBACKER", category: "Sports" },
-      { word: "POWER PLAY", category: "Sports" },
-      { word: "FACEOFF", category: "Sports" },
-      { word: "GRAND SLAM", category: "Sports" },
-      { word: "HAIL MARY", category: "Sports" },
-      { word: "FASTBALL", category: "Sports" },
-      { word: "REBOUND", category: "Sports" },
-      { word: "MUSTANG", category: "Machines" },
-      { word: "CAMARO", category: "Machines" },
-      { word: "CORVETTE", category: "Machines" },
-      { word: "CHOPPER", category: "Machines" },
-      { word: "BULLDOZER", category: "Machines" },
-      { word: "JACKHAMMER", category: "Machines" },
-      { word: "BARBELL", category: "Muscle" },
-      { word: "DEADLIFT", category: "Muscle" },
-      { word: "BENCH PRESS", category: "Muscle" },
-      { word: "UPPERCUT", category: "Muscle" },
-      { word: "ANVIL", category: "Muscle" },
-      { word: "WRENCH", category: "Machines" }
-    ];
-
-    const MAX_MISSES = 7;
-    const state = {
-      answer: "",
-      category: "",
-      guessed: new Set(),
-      misses: [],
-      over: false,
-      wins: 0,
-      losses: 0
-    };
-
-    const els = {
-      word: document.getElementById("word"),
-      bank: document.getElementById("bank"),
-      status: document.getElementById("status"),
-      letter: document.getElementById("letter"),
-      form: document.getElementById("form"),
-      category: document.getElementById("category"),
-      wins: document.getElementById("wins"),
-      losses: document.getElementById("losses"),
-      left: document.getElementById("left"),
-      newGame: document.getElementById("newGame")
-    };
-
-    function pickWord() {
-      const pick = WORDS[Math.floor(Math.random() * WORDS.length)];
-      state.answer = pick.word;
-      state.category = pick.category;
-      state.guessed = new Set();
-      state.misses = [];
-      state.over = false;
-      els.letter.disabled = false;
-      els.form.querySelector("button").disabled = false;
-      els.status.className = "status";
-      els.status.textContent = "Type a letter and hit Enter. Seven misses and you are toast.";
-      render();
-      els.letter.focus();
-    }
-
-    function lettersInAnswer() {
-      return [...state.answer].filter((ch) => /[A-Z]/.test(ch));
-    }
-
-    function won() {
-      return lettersInAnswer().every((ch) => state.guessed.has(ch));
-    }
-
-    function render() {
-      els.category.textContent = state.category;
-      els.wins.textContent = state.wins;
-      els.losses.textContent = state.losses;
-      els.left.textContent = MAX_MISSES - state.misses.length;
-
-      els.word.innerHTML = "";
-      for (const ch of state.answer) {
-        const slot = document.createElement("div");
-        if (ch === " ") {
-          slot.className = "slot space";
-        } else {
-          slot.className = "slot";
-          slot.textContent = state.guessed.has(ch) || state.over ? ch : "";
-        }
-        els.word.appendChild(slot);
-      }
-
-      els.bank.innerHTML = "";
-      if (!state.misses.length) {
-        els.bank.innerHTML = '<span class="empty-bank">No misses yet. Stay locked in.</span>';
-      } else {
-        state.misses.forEach((letter) => {
-          const miss = document.createElement("div");
-          miss.className = "miss";
-          miss.textContent = letter;
-          els.bank.appendChild(miss);
-        });
-      }
-
-      for (let i = 0; i < 8; i++) {
-        const part = document.getElementById("p" + i);
-        part.classList.toggle("show-part", i < state.misses.length);
-        part.classList.toggle("hidden-part", i >= state.misses.length);
-      }
-    }
-
-    function guess(raw) {
-      if (state.over) return;
-      const letter = String(raw || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
-      if (!letter) {
-        els.status.textContent = "Need a letter, champ.";
-        return;
-      }
-      if (state.guessed.has(letter) || state.misses.includes(letter)) {
-        els.status.textContent = letter + " is already in play.";
-        return;
-      }
-
-      if (state.answer.includes(letter)) {
-        state.guessed.add(letter);
-        els.status.textContent = letter + " is in there. Keep swinging.";
-      } else {
-        state.misses.push(letter);
-        els.status.textContent = letter + " is a miss. In the bank.";
-      }
-
-      if (won()) {
-        state.over = true;
-        state.wins += 1;
-        els.status.className = "status win";
-        els.status.textContent = "Victory. You cracked " + state.answer + ".";
-        els.letter.disabled = true;
-        els.form.querySelector("button").disabled = true;
-      } else if (state.misses.length >= MAX_MISSES) {
-        state.over = true;
-        state.losses += 1;
-        els.status.className = "status lose";
-        els.status.textContent = "Down for the count. It was " + state.answer + ".";
-        els.letter.disabled = true;
-        els.form.querySelector("button").disabled = true;
-      }
-
-      render();
-    }
-
-    els.form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      guess(els.letter.value);
-      els.letter.value = "";
-      els.letter.focus();
-    });
-
-    els.letter.addEventListener("input", () => {
-      els.letter.value = els.letter.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
-    });
-
-    els.newGame.addEventListener("click", pickWord);
-
-    pickWord();
-  </script>
 </body>
 </html>
