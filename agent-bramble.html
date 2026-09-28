@@ -104,6 +104,19 @@
       text-align: center;
     }
     .best { margin-top: 12px; font-weight: 700; color: #ffd98a; }
+    label.field { display: block; margin: 10px 0; font-weight: 700; }
+    label.field input {
+      display: block;
+      width: 100%;
+      margin-top: 6px;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: 700 18px Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background: #fff6e8;
+    }
+    #clock { display: block; font-size: 18px; color: #ffe7a3; }
     #hud {
       position: absolute;
       top: 12px;
@@ -220,6 +233,7 @@
       </div>
       <div class="badge" style="text-align:center">
         <span id="lvlname">Cargo Spine</span>
+        <b id="clock">0:00.00</b>
         <b id="score">0</b>
       </div>
       <div class="badge" style="text-align:right">
@@ -230,11 +244,29 @@
     </div>
     <div id="hint"></div>
     <div id="banner"><h2 id="btitle"></h2><p id="bsub"></p></div>
-    <div id="title" class="screen show">
+    <div id="namegate" class="screen show">
+      <div class="panel">
+        <div class="tag">Before the mission</div>
+        <h1 style="font-size:48px">YOUR NAME</h1>
+        <p class="lead">First and last name go on the time leaderboard when you clear all 25 levels.</p>
+        <form id="nameform">
+          <label class="field">First name
+            <input id="firstName" name="first" maxlength="20" autocomplete="given-name" required />
+          </label>
+          <label class="field">Last name
+            <input id="lastName" name="last" maxlength="24" autocomplete="family-name" required />
+          </label>
+          <div class="row">
+            <button class="btn" type="submit">Continue</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="title" class="screen">
       <div class="panel">
         <div class="tag">Park Service covert unit</div>
         <h1>AGENT<br>BRAMBLE</h1>
-        <p class="lead">Hexbots stole the amber grid and locked the scouts in glass pods. Put on a visor headset, wake its laser, and shut Director Vex down.</p>
+        <p class="lead">Twenty-five vaults. Put on a visor headset, free the scouts, and shut Director Vex down on level 25.</p>
         <div class="keys">
           <b>← →</b><span>Run</span>
           <b>↑</b><span>Jump. Press again in the air for a second jump.</span>
@@ -275,8 +307,10 @@
         <div class="tag">Vault secure</div>
         <h1 style="font-size:52px">GRID SAFE</h1>
         <p class="lead" id="winmsg">Director Vex is offline and the scouts are out.</p>
+        <p class="best" id="boardstatus"></p>
         <div class="row">
           <button class="btn" id="again">Play again</button>
+          <a class="btn ghost" href="bramble-leaderboard.html">Leaderboard</a>
           <button class="btn ghost" id="winquit">Title</button>
         </div>
       </div>
@@ -293,6 +327,7 @@
       </div>
     </div>
   </div>
+  <script src="bramble-board.js"></script>
   <script>
 (function () {
   "use strict";
@@ -325,7 +360,9 @@
   const THEMES = [
     { sky0: "#07111f", sky1: "#1a4b78", hill: "#12304d", accent: "#3ee0c5", block: "#16344c", block2: "#214e6d", hazard: "#ff4d6a", fog: "#9ad7ff" },
     { sky0: "#1a0d18", sky1: "#6a3a16", hill: "#3a2418", accent: "#ffb703", block: "#3a2a32", block2: "#5c4038", hazard: "#ff6a3c", fog: "#ffd7a1" },
-    { sky0: "#14040c", sky1: "#5a1430", hill: "#2a0c18", accent: "#ff4d8d", block: "#2c1422", block2: "#4c2436", hazard: "#ff3358", fog: "#ffb0c4" }
+    { sky0: "#10160f", sky1: "#2f6b3a", hill: "#1a3320", accent: "#b6f25c", block: "#1d3a28", block2: "#2f5a3c", hazard: "#ff5d73", fog: "#d7ffc4" },
+    { sky0: "#14040c", sky1: "#5a1430", hill: "#2a0c18", accent: "#ff4d8d", block: "#2c1422", block2: "#4c2436", hazard: "#ff3358", fog: "#ffb0c4" },
+    { sky0: "#0c1024", sky1: "#3a2a78", hill: "#1a1840", accent: "#9ad7ff", block: "#241848", block2: "#3a2868", hazard: "#ff6a3c", fog: "#ddd6ff" }
   ];
 
   const down = Object.create(null);
@@ -399,6 +436,8 @@
   };
 
   function addKey(e, isDown) {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
     const move = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space", "KeyA", "KeyD", "KeyW", "KeyS"];
     if (move.includes(e.code)) e.preventDefault();
     if (isDown) {
@@ -538,6 +577,138 @@
     plat(L2, 30, 9, 3);
     put(L2, 31, 8, "G");
 
+    const RUN_NAMES = [
+      "PINE SWITCHBACK", "HONEYCOMB VENT", "CINDER WALK", "GLASS ORCHARD",
+      "RUST TRESTLE", "LANTERN DRIFT", "MOSS LIFT", "COPPER SLUICE",
+      "NIGHT MARKET", "BRAMBLE SPIRES", "ECHO CAUSEWAY", "SOOT GARDEN",
+      "RELAY CLIFFS", "AMBER AQUEDUCT", "STATIC ORCHARD", "KILN BRIDGE",
+      "FOG CATWALK", "SCOUT HOLLOW", "WIRE CANOPY", "REDWOOD SWITCH",
+      "EMBER DOCKS", "LAST GATE"
+    ];
+
+    function buildRun(index) {
+      const rnd = mulberry32(41000 + index * 131);
+      const width = 86 + (index - 2) * 2;
+      const H = 16;
+      const GROUND = 13;
+      const FLOOR = 14;
+      const g = grid(width, H);
+      const movers = [];
+      rect(g, 0, FLOOR, width, 2, "#");
+      rect(g, 0, 0, 1, H, "#");
+      rect(g, width - 1, 0, 1, H, "#");
+      put(g, 4, GROUND, "P");
+      put(g, 7, GROUND, "H");
+      put(g, 8, GROUND, "*");
+      put(g, 9, GROUND, "*");
+
+      let x = 12;
+      let gated = false;
+      let hasVent = false;
+      let hasBarge = false;
+      let hasFlyer = false;
+      const gateAt = Math.floor(width * 0.58);
+
+      function placeGate() {
+        put(g, x, FLOOR, "#");
+        put(g, x, FLOOR + 1, "#");
+        put(g, x, GROUND, "R");
+        x += 3;
+        if (index >= 12) {
+          put(g, x, FLOOR, "#");
+          put(g, x, FLOOR + 1, "#");
+          put(g, x, GROUND, "R");
+          x += 3;
+        }
+        for (let y = 7; y <= GROUND; y++) put(g, x, y, "D");
+        put(g, x, 6, "#");
+        x += 3;
+        gated = true;
+      }
+
+      while (x < width - 10) {
+        if (!gated && x >= gateAt) {
+          placeGate();
+          continue;
+        }
+        const roll = rnd();
+        if (roll < 0.2) {
+          put(g, x, FLOOR, "^");
+          put(g, x, FLOOR + 1, ".");
+          put(g, x + 1, FLOOR, "^");
+          put(g, x + 1, FLOOR + 1, ".");
+          x += 5;
+        } else if (roll < 0.38) {
+          plat(g, x, GROUND - 1, 3);
+          put(g, x + 1, GROUND - 2, "*");
+          if (rnd() < 0.45) put(g, x + 2, GROUND - 2, "G");
+          x += 6;
+        } else if (roll < 0.54 && index >= 4) {
+          const len = index >= 16 ? 7 : 5;
+          for (let i = 0; i < len; i++) put(g, x + i, GROUND - 1, "#");
+          hasVent = true;
+          x += len + 3;
+        } else if (roll < 0.7 && index >= 7 && x + 14 < width - 10 && x + 14 < gateAt) {
+          const pit = 7;
+          for (let i = 0; i < pit; i++) {
+            put(g, x + i, FLOOR, "^");
+            put(g, x + i, FLOOR + 1, ".");
+          }
+          movers.push({
+            x: x * TILE,
+            y: 12 * TILE,
+            w: 3 * TILE,
+            h: 14,
+            min: x * TILE,
+            max: (x + pit - 3) * TILE,
+            axis: "x",
+            rate: 0.62,
+            t: index * 0.4
+          });
+          hasBarge = true;
+          x += pit + 3;
+        } else if (roll < 0.86) {
+          let kind = "A";
+          if (index >= 5 && rnd() < 0.5) kind = "B";
+          if (index >= 14 && rnd() < 0.35) kind = "F";
+          if (kind === "F") {
+            put(g, x, GROUND - 3, "F");
+            hasFlyer = true;
+          } else {
+            put(g, x, GROUND, kind);
+          }
+          put(g, x + 2, GROUND, "*");
+          x += 6;
+        } else {
+          put(g, x, GROUND, "*");
+          put(g, x + 1, GROUND, "*");
+          if (index % 4 === 3) put(g, x + 3, GROUND, "+");
+          if (rnd() < 0.35) put(g, x + 4, GROUND, "C");
+          x += 6;
+        }
+      }
+
+      if (!gated) placeGate();
+      for (let i = width - 7; i < width - 1; i++) {
+        put(g, i, FLOOR, "#");
+        put(g, i, FLOOR + 1, "#");
+        if ("D^ABF".includes(g[GROUND][i])) g[GROUND][i] = ".";
+        if (g[GROUND - 1][i] === "#") g[GROUND - 1][i] = ".";
+      }
+      put(g, width - 4, GROUND, "E");
+
+      let sub = "Headset on. Free the scout. The gate opens after.";
+      if (hasVent) sub = "Slide under the low ceiling, then free the scout.";
+      if (hasBarge) sub = "Ride the barge across the spikes.";
+      if (hasFlyer) sub = "Flyers shoot. Keep the visor laser ready.";
+      return {
+        name: RUN_NAMES[index - 2],
+        sub: sub,
+        grid: g,
+        movers: movers
+      };
+    }
+
     const L3 = grid(54, 15);
     rect(L3, 0, 13, 54, 2, "#");
     rect(L3, 0, 0, 1, 15, "#");
@@ -561,7 +732,7 @@
     put(L3, 49, 11, "*");
     plat(L3, 48, 12, 3);
 
-    return [
+    const levels = [
       {
         name: "CARGO SPINE",
         sub: "Grab a headset. Free the scout. Open the gate.",
@@ -576,18 +747,42 @@
           { x: 22 * TILE, y: 12 * TILE, w: 4 * TILE, h: 14, min: 21 * TILE, max: 39 * TILE, axis: "x", rate: 0.7, t: 0 },
           { x: 56 * TILE, y: 8 * TILE, w: 3 * TILE, h: 14, min: 7 * TILE, max: 12 * TILE, axis: "y", rate: 0.85, t: 1.2 }
         ]
-      },
-      {
-        name: "VEX CORE",
-        sub: "When Vex opens the core, burn it with the laser.",
-        grid: L3,
-        boss: true,
-        movers: []
       }
     ];
+    for (let n = 2; n <= 23; n++) levels.push(buildRun(n));
+    levels.push({
+      name: "VEX CORE",
+      sub: "When Vex opens the core, burn it with the laser.",
+      grid: L3,
+      boss: true,
+      bossHp: 200,
+      movers: []
+    });
+    return levels;
   }
 
   const LEVELS = buildLevels();
+  (function checkLevels() {
+    if (LEVELS.length !== 25) throw new Error("Agent Bramble needs 25 levels");
+    LEVELS.forEach(function (L, i) {
+      const g = L.grid;
+      let P = 0, H = 0, E = 0, R = 0, dX = Infinity, rX = Infinity;
+      for (let y = 0; y < g.length; y++) {
+        for (let x = 0; x < g[0].length; x++) {
+          const c = g[y][x];
+          if (c === "P") P++;
+          if (c === "H") H++;
+          if (c === "E") E++;
+          if (c === "R") { R++; rX = Math.min(rX, x); }
+          if (c === "D") dX = Math.min(dX, x);
+        }
+      }
+      if (P !== 1 || H < 1) throw new Error("Level " + (i + 1) + " is missing a start");
+      if (i < 24 && E < 1) throw new Error("Level " + (i + 1) + " is missing an exit");
+      if (dX < Infinity && !(R >= 1 && rX < dX)) throw new Error("Level " + (i + 1) + " gate has no scout");
+      if (i === 24 && !L.boss) throw new Error("Level 25 should be the boss");
+    });
+  })();
 
   function pointSolid(x, y) {
     const tx = Math.floor(x / TILE);
@@ -686,7 +881,7 @@
     const src = LEVELS[index];
     G.level = index;
     G.meta = src;
-    G.theme = THEMES[index];
+    G.theme = THEMES[index % THEMES.length];
     G.h = src.grid.length;
     G.w = src.grid[0].length;
     G.grid = src.grid.map((row) => row.slice());
@@ -759,8 +954,8 @@
         y: 4 * TILE,
         w: 118,
         h: 96,
-        hp: 150,
-        max: 150,
+        hp: src.bossHp || 150,
+        max: src.bossHp || 150,
         alive: true,
         open: false,
         state: "enter",
@@ -814,7 +1009,7 @@
         hasHeadset: false,
         windup: 0,
         cool: 1.2 + Math.random(),
-        period: 2.4,
+        period: Math.max(1.05, 2.4 - G.level * 0.04),
         flash: 0,
         stun: 0,
         dead: false,
@@ -838,7 +1033,7 @@
       hasHeadset: shooter,
       windup: 0,
       cool: 0.8 + Math.random(),
-      period: 2.15 - G.level * 0.28,
+      period: Math.max(0.95, 2.15 - G.level * 0.04),
       flash: 0,
       stun: 0,
       dead: false,
@@ -1149,7 +1344,7 @@
           }
           if (e.windup > 0) {
             e.windup -= dt;
-            if (e.windup <= 0) shoot(e, 200 + G.level * 30);
+            if (e.windup <= 0) shoot(e, 200 + Math.min(G.level, 18) * 8);
           }
         }
         continue;
@@ -1175,7 +1370,7 @@
           }
           if (e.windup > 0) {
             e.windup -= dt;
-            if (e.windup <= 0) shoot(e, 230 + G.level * 35);
+            if (e.windup <= 0) shoot(e, 220 + Math.min(G.level, 18) * 8);
           }
         }
       }
@@ -2144,7 +2339,10 @@
     if (!p) return;
     document.getElementById("hearts").textContent = "♥".repeat(p.hp) + "♡".repeat(Math.max(0, p.maxHp - p.hp));
     document.getElementById("score").textContent = String(G.score);
-    document.getElementById("lvlname").textContent = G.meta ? G.meta.name + (G.rescues > 0 ? "  ·  " + G.rescues + " scout" : "") : "";
+    document.getElementById("lvlname").textContent = G.meta
+      ? (G.level + 1) + "/" + LEVELS.length + "  " + G.meta.name + (G.rescues > 0 ? "  ·  " + G.rescues + " scout" + (G.rescues === 1 ? "" : "s") : "")
+      : "";
+    document.getElementById("clock").textContent = BrambleBoard.format(clockNow());
     document.getElementById("shards").textContent = G.tokens + "/" + G.tokenMax;
     document.getElementById("gear").textContent = p.headset ? "Headset laser" : (p.equip ? "Putting it on…" : "No headset");
     document.getElementById("meterfill").style.width = (p.headset || p.energy > 0 ? p.energy : 0) + "%";
@@ -2190,10 +2388,38 @@
     }
   }
 
+  const run = { name: "", elapsed: 0, ticking: false, mark: 0 };
+
+  function clockNow() {
+    if (!run.ticking) return run.elapsed;
+    return run.elapsed + (performance.now() - run.mark);
+  }
+  function clockStart() {
+    if (run.ticking) return;
+    run.ticking = true;
+    run.mark = performance.now();
+  }
+  function clockStop() {
+    if (!run.ticking) return;
+    run.elapsed += performance.now() - run.mark;
+    run.ticking = false;
+  }
+  function clockReset() {
+    run.elapsed = 0;
+    run.ticking = false;
+  }
+
+  function cleanName(value) {
+    return String(value || "").replace(/[^A-Za-z .'\-]/g, "").replace(/\s+/g, " ").trim().slice(0, 20);
+  }
+
   function showTitle() {
     G.state = "title";
+    clockStop();
+    clockReset();
     audio.setLaser(false);
-    show("title", true);
+    show("namegate", !run.name);
+    show("title", !!run.name);
     show("pause", false);
     show("dead", false);
     show("win", false);
@@ -2205,14 +2431,31 @@
   }
 
   function showWin() {
+    clockStop();
+    const ms = Math.round(clockNow());
     bestScore(G.score);
-    document.getElementById("winmsg").textContent = "Director Vex is offline. Score " + G.score + ". Best " + bestScore(0) + ".";
+    document.getElementById("winmsg").textContent = "All 25 levels cleared in " + BrambleBoard.format(ms) + ". Score " + G.score + ".";
+    const status = document.getElementById("boardstatus");
+    status.textContent = "Saving your time…";
+    BrambleBoard.submit(run.name, ms).then(function (result) {
+      const rows = result.rows || [];
+      const rank = rows.findIndex(function (row) { return row.name === run.name; }) + 1;
+      if (result.saved && rank > 0) status.textContent = "Saved. You are #" + rank + " on the leaderboard.";
+      else if (result.reason === "slower") status.textContent = "A faster time for " + run.name + " is already saved (" + BrambleBoard.format(result.best) + ").";
+      else if (result.reason === "short") status.textContent = "That time was too short to save.";
+      else status.textContent = rank > 0 ? "You are #" + rank + "." : "Time saved.";
+    }).catch(function () {
+      status.textContent = "Your time is " + BrambleBoard.format(ms) + ", but the leaderboard could not be reached.";
+    });
     show("win", true);
     setHUD(false);
     hideBanner();
   }
 
   function begin() {
+    if (!run.name) return;
+    clockReset();
+    clockStart();
     audio.ensure();
     G.score = 0;
     G.state = "intro";
@@ -2278,7 +2521,7 @@
     G.time += dt;
 
     if (G.state === "title") {
-      if (edge(["Enter", "Space"])) begin();
+      if (run.name && edge(["Enter", "Space"])) begin();
     } else if (G.state === "intro") {
       G.intro += dt;
       updateCamera(dt);
@@ -2288,7 +2531,9 @@
         hideBanner();
       }
     } else if (G.state === "play") {
+      clockStart();
       if (edge(["Escape", "KeyP"])) {
+        clockStop();
         G.state = "pause";
         audio.setLaser(false);
         G.player.firing = false;
@@ -2296,6 +2541,7 @@
       } else if (edge(["KeyR"])) retry();
       else updatePlay(dt);
     } else if (G.state === "pause") {
+      clockStop();
       if (edge(["Escape", "KeyP", "Space", "Enter"])) {
         G.state = "play";
         show("pause", false);
@@ -2324,6 +2570,34 @@
     clearEdges();
     requestAnimationFrame(frame);
   }
+
+  try {
+    const saved = localStorage.getItem("bramble-name") || "";
+    const split = saved.indexOf(" ");
+    if (split > 0) {
+      document.getElementById("firstName").value = saved.slice(0, split);
+      document.getElementById("lastName").value = saved.slice(split + 1);
+    }
+  } catch (e) {}
+
+  document.getElementById("nameform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const firstEl = document.getElementById("firstName");
+    const lastEl = document.getElementById("lastName");
+    const first = cleanName(firstEl.value);
+    const last = cleanName(lastEl.value);
+    firstEl.setCustomValidity(first ? "" : "Use letters for your first name.");
+    lastEl.setCustomValidity(last ? "" : "Use letters for your last name.");
+    if (!first || !last) {
+      (first ? lastEl : firstEl).reportValidity();
+      return;
+    }
+    run.name = first + " " + last;
+    try { localStorage.setItem("bramble-name", run.name); } catch (err) {}
+    clearEdges();
+    show("namegate", false);
+    show("title", true);
+  });
 
   showTitle();
   requestAnimationFrame(frame);
