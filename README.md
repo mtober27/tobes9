@@ -1,16 +1,34 @@
-# Starpath Dash
+# Mike's Game Room
 
-A 100-course third-person deathrun in one HTML file. Ten worlds, ten courses each. Reach the gold flag, pick a power-up, and keep going until course 100.
+Three browser games in one lobby. Open `index.html` and pick a cabinet. Each game is a single HTML file, so there is nothing to install.
 
-Open `deathrun.html` in a browser. The page loads [Three.js](https://threejs.org/) and fonts from the internet, so you need a connection the first time. A local static server works too:
+The pages load fonts from the internet. Starpath Dash also loads [Three.js](https://threejs.org/). A local static server works if opening the file directly does not:
 
 ```bash
 python3 -m http.server
 ```
 
-Then visit `http://localhost:8000/deathrun.html`.
+Then visit `http://localhost:8000/`.
 
-## How to play
+| Game | File | What it is |
+| --- | --- | --- |
+| Iron Man Hangman | `hangman.html` | Guess the word. Seven misses and the match is over. |
+| Starpath Dash | `deathrun.html` | A 100-course third-person deathrun. |
+| Agent Bramble | `agent-bramble.html` | A side-scrolling bear spy. Twenty-five levels and a boss. |
+
+The lobby also links to the [Agent Bramble leaderboard](bramble-leaderboard.html).
+
+## Iron Man Hangman
+
+A word is picked at random from movies, sports, muscle, and machines. The category is shown. Type one letter and press Enter, or press Guess. Spaces in a phrase are already filled in.
+
+You get 7 misses. Wrong letters land in the bank under the word. **New match** draws another word. Wins and losses stay on the page until you refresh.
+
+## Starpath Dash
+
+Ten worlds, ten courses each. Reach the gold flag, pick a power-up, and keep going until course 100.
+
+### How to play
 
 Each course is a generated path of platforms. Land on the gold finish pad to clear it. Falling off, or touching a red spinning bar, costs a life. You start each course with 3 lives. Run out and you return to the map. The course layout is the same every time you play that number.
 
@@ -22,7 +40,7 @@ Clearing a course unlocks the next one, up to 100. Worlds stay locked until you 
 
 After a clear (except course 100), you pick 1 of 3 random power-ups. It lasts 3 attempts on the next course, including deaths. When those attempts are gone, the power drops off even if you still have lives. Beating course 100 ends the run.
 
-## Controls
+### Controls
 
 | Action | Key |
 | --- | --- |
@@ -35,7 +53,7 @@ After a clear (except course 100), you pick 1 of 3 random power-ups. It lasts 3 
 
 Hold Space only as long as you want the jump. Letting go early cuts the height.
 
-## Worlds
+### Worlds
 
 Courses 1–10 are World 1, 11–20 are World 2, and so on. Later courses use narrower pads, wider gaps, and more hazards. Each world also has its own twist.
 
@@ -61,7 +79,7 @@ Shared platform types show up more as the course number climbs:
 - **Bounce** pads (green) launch you upward.
 - **Red bars** spin. Touch one and you lose a life.
 
-## Power-ups
+### Power-ups
 
 | Power | Effect |
 | --- | --- |
@@ -78,7 +96,7 @@ Shared platform types show up more as the course number climbs:
 | Hover Step | You can jump a little late and still make it |
 | Spring Soles | Normal landings give a small hop |
 
-## Sandbox
+### Sandbox
 
 **Sandbox** on the title screen unlocks all 100 courses and gives infinite lives. Progress from sandbox is not written to your save.
 
@@ -88,7 +106,7 @@ Shared platform types show up more as the course number climbs:
 
 Leave sandbox by going back to the map and choosing **Continue adventure**.
 
-## Save data
+### Save data
 
 Progress is stored in `localStorage` under the key `starpath-dash-v1`:
 
@@ -97,3 +115,25 @@ Progress is stored in `localStorage` under the key `starpath-dash-v1`:
 - `best` — highest course number you have cleared
 
 It stays in this browser until you press **Reset save** or clear site data.
+
+## Agent Bramble
+
+A park-service bear spy. Twenty-five vaults. Put on a visor headset, free the scouts, and shut Director Vex down on level 25.
+
+Enter a first and last name before the mission. That name is what shows up on the time leaderboard if you clear every level.
+
+### Controls
+
+Arrow keys or WASD both work. On a phone, the on-screen buttons do the same jobs.
+
+| Action | Key |
+| --- | --- |
+| Run | Left and Right arrows |
+| Jump, then jump again in the air | Up arrow |
+| Slide through vents, or duck under shots | Down arrow |
+| Take a bot’s headset up close, or hold to fire the visor laser | Space |
+| Pause | Esc |
+
+Helmeted enemies take two stomps. The last level is a boss. When Vex opens the core, burn it with the laser.
+
+Clearing all 25 levels records your time. A later run only replaces that name if the new time is faster. Open `bramble-leaderboard.html` from the lobby, or from the win screen, to see the board. The board needs a connection.
