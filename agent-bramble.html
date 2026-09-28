@@ -355,7 +355,7 @@
   const DJUMP_V = -505;
   const PW = 32;
   const PH = 52;
-  const SH = 26;
+  const SH = 14;
 
   const THEMES = [
     { sky0: "#07111f", sky1: "#1a4b78", hill: "#12304d", accent: "#3ee0c5", block: "#16344c", block2: "#214e6d", hazard: "#ff4d6a", fog: "#9ad7ff" },
@@ -1100,6 +1100,27 @@
     burst(p.x + 10, p.y + 8, 12, "#7ef6e4", 160, 0);
   }
 
+  function stompEnemy(e) {
+    const p = G.player;
+    p.vy = -460;
+    p.jumps = 1;
+    p.onGround = false;
+    p.coyote = 0;
+    if (e.hasHeadset) {
+      const feet = e.y + e.h;
+      e.hasHeadset = false;
+      e.h = 34;
+      e.y = feet - e.h;
+      e.stun = 0.45;
+      e.windup = 0;
+      popup(e.x, e.y - 16, "HELMET OFF", "#7ef6e4");
+      burst(e.x + e.w / 2, e.y, 10, "#9af7ea", 160, 80);
+      audio.tone(280, 0.09, "square", 0.05, 220);
+      return;
+    }
+    killEnemy(e);
+  }
+
   function killEnemy(e) {
     if (e.dead) return;
     e.dead = true;
@@ -1347,6 +1368,10 @@
             if (e.windup <= 0) shoot(e, 200 + Math.min(G.level, 18) * 8);
           }
         }
+        const pFly = G.player;
+        if (pFly && overlaps(e, pFly) && pFly.dropVy > 80 && pFly.prevBottom <= e.y + 16) {
+          stompEnemy(e);
+        }
         continue;
       }
       e.vy = Math.min(900, e.vy + GRAV * dt);
@@ -1376,7 +1401,12 @@
       }
       moveBody(e, dt, true);
       moveBody(e, dt, false);
-      if (e.stun <= 0 && overlaps(e, G.player)) hurt(1, e.x + e.w / 2);
+      const p = G.player;
+      if (p && overlaps(e, p)) {
+        const fromAbove = p.dropVy > 80 && p.prevBottom <= e.y + 18;
+        if (fromAbove) stompEnemy(e);
+        else if (e.stun <= 0 && !e.dead) hurt(1, e.x + e.w / 2);
+      }
     }
     G.enemies = G.enemies.filter((e) => !e.dead);
   }
@@ -1594,6 +1624,8 @@
 
     p.vy = Math.min(980, p.vy + GRAV * dt);
     const prevBottom = p.y + p.h;
+    p.dropVy = p.vy;
+    p.prevBottom = prevBottom;
     moveBody(p, dt, true);
     moveBody(p, dt, false);
 
@@ -2032,6 +2064,7 @@
     if (p.iframes > 0 && Math.sin(G.time * 40) > 0) ctx.globalAlpha = 0.45;
     const face = p.facing;
     ctx.scale(face, 1);
+    if (p.sliding) ctx.scale(1.25, 0.32);
     const squash = 1 - p.squash;
     const stretch = 1 + p.squash;
     ctx.scale(stretch, squash);
