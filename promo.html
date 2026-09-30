@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Mike's Game Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a120c;
+      --cream: #fff6e4;
+      --gold: #ffc857;
+      --wood: #3a2a1c;
+      --wood-dark: #24180f;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--cream);
+      font-family: Outfit, "Trebuchet MS", sans-serif;
+      background:
+        radial-gradient(900px 420px at 50% -10%, rgba(255, 200, 87, .28), transparent 60%),
+        radial-gradient(700px 500px at 100% 100%, rgba(46, 230, 199, .12), transparent 55%),
+        linear-gradient(180deg, #2a1c12 0%, #120e0b 38%, #0c0a09 100%);
+    }
+
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      background: #120e0b;
+      border-bottom: 3px solid #c8924a;
+    }
+
+    .bar-links { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .bar-links a { color: #2ee6c7; font-weight: 700; text-decoration: none; }
+
+    .games { position: relative; }
+    .games summary {
+      list-style: none;
+      cursor: pointer;
+      font-family: "Lilita One", cursive;
+      font-size: 22px;
+      letter-spacing: .6px;
+      color: var(--ink);
+      background: linear-gradient(180deg, #ffe7a3, var(--gold));
+      border-radius: 14px;
+      padding: 8px 16px 6px;
+      box-shadow: 0 4px 0 #a56b12;
+    }
+    .games summary::-webkit-details-marker { display: none; }
+    .games summary:focus-visible, .games .menu a:focus-visible, a.play:focus-visible, a.btn:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 3px;
+    }
+    .games .menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 240px;
+      background: #24180f;
+      border: 3px solid #c8924a;
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 10px 0 #1a100a;
+    }
+    .games .menu a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: #fff6e4;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .games .menu a:hover { background: rgba(255, 200, 87, .16); }
+    .games .menu a.hang { color: #f5c518; }
+    .games .menu a.dash { color: #ffd24a; }
+    .games .menu a.bram { color: #2ee6c7; }
+
+    .wrap { max-width: 980px; margin: 0 auto; padding: 36px 20px 72px; }
+    header.intro { text-align: center; }
+
+    .kicker {
+      margin: 0 0 8px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+      color: #e7c27a;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Lilita One", cursive;
+      font-size: clamp(44px, 10vw, 76px);
+      font-weight: 400;
+      letter-spacing: 1px;
+      line-height: .9;
+      color: #fff8e8;
+      text-shadow: 0 4px 0 #6b3a12, 0 10px 0 rgba(0, 0, 0, .25);
+    }
+
+    .lede {
+      margin: 14px auto 0;
+      max-width: 46ch;
+      font-size: 18px;
+      line-height: 1.45;
+      color: #f3e2c4;
+    }
+
+    .actions { display: flex; justify-content: center; margin-top: 18px; }
+    a.btn, a.play {
+      display: inline-block;
+      text-decoration: none;
+      font-family: "Lilita One", cursive;
+      letter-spacing: .6px;
+      color: var(--ink);
+      background: linear-gradient(180deg, #ffe7a3, var(--gold));
+      border-radius: 14px;
+    }
+    a.btn { font-size: 22px; padding: 12px 18px 10px; box-shadow: 0 5px 0 #a56b12; }
+    a.btn:hover, a.play:hover { transform: translateY(-2px); }
+
+    .hero, .shot {
+      margin: 28px 0 0;
+      background: #070910;
+      border: 4px solid #120e0c;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 2px rgba(255, 214, 140, .25), 0 14px 0 #1a100a;
+    }
+    .hero img, .shot img { display: block; width: 100%; height: auto; }
+
+    .game {
+      margin-top: 36px;
+      scroll-margin-top: 84px;
+      background: linear-gradient(180deg, #5a3d28, var(--wood) 12%, var(--wood-dark));
+      border: 3px solid #c8924a;
+      border-radius: 22px;
+      padding: 14px 14px 20px;
+      box-shadow: 0 10px 0 #1a100a;
+    }
+    .shot { margin: 0 0 8px; box-shadow: inset 0 0 0 2px rgba(255, 214, 140, .25); }
+    .copy { padding: 8px 8px 0; }
+
+    h2 {
+      margin: 6px 0 10px;
+      font-family: "Lilita One", cursive;
+      font-weight: 400;
+      font-size: clamp(32px, 6vw, 44px);
+      letter-spacing: .4px;
+      line-height: 1;
+    }
+    .hangman h2 { color: #f5c518; }
+    .dash h2 { color: #ffd24a; }
+    .bramble h2 { color: #2ee6c7; }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-family: "Lilita One", cursive;
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: .3px;
+      color: #ffe7a3;
+    }
+
+    .copy p, .copy li { color: #f6e7cf; line-height: 1.45; font-size: 16px; }
+    .copy p { margin: 0 0 10px; }
+    .copy ul { margin: 0 0 12px; padding-left: 1.2em; }
+    .copy li { margin: 0 0 6px; }
+    .copy strong { color: #fff8e8; }
+
+    .table-wrap { overflow-x: auto; margin: 0 0 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(255, 214, 140, .22); vertical-align: top; }
+    th {
+      color: #e7c27a;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    a.play { font-size: 20px; padding: 10px 16px 8px; box-shadow: 0 4px 0 #a56b12; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <details class="games">
+      <summary>GAMES</summary>
+      <div class="menu">
+        <a class="hang" href="#hangman">Iron Man Hangman</a>
+        <a class="dash" href="#starpath">Starpath Dash</a>
+        <a class="bram" href="#bramble">Agent Bramble</a>
+      </div>
+    </details>
+    <div class="bar-links">
+      <a href="game-room.html">Game room</a>
+      <a href="bramble-times.html">Bramble times</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="intro">
+      <p class="kicker">Three games, one lobby</p>
+      <h1>Game Room</h1>
+      <p class="lede">A small arcade that runs in the browser. Nothing to install. Open the lobby and pick a cabinet, or use GAMES to jump to a write-up.</p>
+      <div class="actions">
+        <a class="btn" href="game-room.html">Play the games</a>
+      </div>
+    </header>
+
+    <figure class="hero">
+      <img src="shots/lobby.png" alt="The game room lobby, with cabinets for Iron Man Hangman, Starpath Dash, and Agent Bramble." />
+    </figure>
+
+    <article class="game hangman" id="hangman">
+      <figure class="shot">
+        <img src="shots/hangman.png" alt="Iron Man Hangman, with a gallows, a sports word in blanks, and seven strikes left." />
+      </figure>
+      <div class="copy">
+        <h2>Iron Man Hangman</h2>
+        <p>A word or short phrase is picked at random. The category sits above the blanks. Fill in every letter before you take 7 misses.</p>
+        <a class="play" href="hangman.html">Play</a>
+
+        <h3>How to play</h3>
+        <p>Each match draws 1 of 40 answers. Spaces in a phrase are already filled in. A correct letter fills every copy of that letter at once.</p>
+        <p>A miss adds one piece to the figure and drops the letter in the incorrect bank. The strike counter in the header counts down from 7. At 0, the match is over and the answer is shown. A win shows the answer too, and locks the guess box until you start another match.</p>
+        <p><strong>New match</strong> draws a new word and clears the figure and the bank. It does not clear your win and loss totals. Those chips stay until you refresh the page. Nothing is written to the browser.</p>
+        <p>Guessing a letter you already tried does nothing. Anything that is not a letter is ignored.</p>
+
+        <h3>Controls</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Action</th><th>Key</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Type a guess</td><td>One letter, A–Z</td></tr>
+              <tr><td>Submit the guess</td><td>Enter, or the Guess button</td></tr>
+              <tr><td>Start another word</td><td>New match</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The box only keeps one character. It switches what you type to uppercase. The header links back to the game room.</p>
+
+        <h3>Categories</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Category</th><th>Answers</th><th>Examples of the kind of phrase</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Movies</td><td>15</td><td>Film titles</td></tr>
+              <tr><td>Sports</td><td>13</td><td>Plays and positions</td></tr>
+              <tr><td>Machines</td><td>7</td><td>Cars and tools</td></tr>
+              <tr><td>Muscle</td><td>5</td><td>Lifts and gym gear</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <article class="game dash" id="starpath">
+      <figure class="shot">
+        <img src="shots/starpath.png" alt="Starpath Dash on course 1 of Leafy Grove, looking down a path of yellow platforms." />
+      </figure>
+      <div class="copy">
+        <h2>Starpath Dash</h2>
+        <p>Ten worlds, ten courses each. Reach the gold flag, pick a power-up, and keep going until course 100.</p>
+        <a class="play" href="starpath.html">Play</a>
+
+        <h3>How to play</h3>
+        <p>Each course is a generated path of platforms. Land on the gold finish pad to clear it. Falling off, or touching a red spinning bar, costs a life. You start each course with 3 lives. Run out and you return to the map. The course layout is the same every time you play that number.</p>
+        <p>Checkpoints sit near the middle and near the end. Dying sends you back to the last one you touched. <strong>R</strong> also sends you back there, without spending a life.</p>
+        <p>Coins on the path add to your total when you clear the course. They are saved in the browser.</p>
+        <p>Clearing a course unlocks the next one, up to 100. Worlds stay locked until you reach their first course. <strong>Continue adventure</strong> jumps to the furthest course you have unlocked. <strong>Reset save</strong> wipes progress.</p>
+        <p>After a clear (except course 100), you pick 1 of 3 random power-ups. It lasts 3 attempts on the next course, including deaths. When those attempts are gone, the power drops off even if you still have lives. Beating course 100 ends the run.</p>
+
+        <h3>Controls</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Action</th><th>Key</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Look around</td><td>Click the game, then move the mouse</td></tr>
+              <tr><td>Move</td><td>W A S D</td></tr>
+              <tr><td>Jump</td><td>Space</td></tr>
+              <tr><td>Sprint</td><td>Shift</td></tr>
+              <tr><td>Restart at last checkpoint</td><td>R</td></tr>
+              <tr><td>Back to the map</td><td>Esc</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Hold Space only as long as you want the jump. Letting go early cuts the height.</p>
+
+        <h3>Worlds</h3>
+        <p>Courses 1–10 are World 1, 11–20 are World 2, and so on. Later courses use narrower pads, wider gaps, and more hazards. Each world also has its own twist.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>World</th><th>Courses</th><th>What changes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Leafy Grove</td><td>1–10</td><td>Extra moving side platforms</td></tr>
+              <tr><td>Candy Kingdom</td><td>11–20</td><td>Bounce pads</td></tr>
+              <tr><td>Sunbaked Dunes</td><td>21–30</td><td>Open desert hops</td></tr>
+              <tr><td>Neon Streets</td><td>31–40</td><td>Conveyor platforms that shove you</td></tr>
+              <tr><td>Frostpeak Pass</td><td>41–50</td><td>Ice. You slide on landing</td></tr>
+              <tr><td>Magma Keep</td><td>51–60</td><td>Crumbling pads and a higher lava floor</td></tr>
+              <tr><td>Coral Cove</td><td>61–70</td><td>Lighter gravity and a little bounce</td></tr>
+              <tr><td>Sky Parade</td><td>71–80</td><td>Lighter gravity over the clouds</td></tr>
+              <tr><td>Spooky Hollow</td><td>81–90</td><td>Platforms that blink in and out</td></tr>
+              <tr><td>Star Palace</td><td>91–100</td><td>Slightly faster running, space road</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Shared platform types show up more as the course number climbs:</p>
+        <ul>
+          <li><strong>Moving</strong> pads slide sideways or bob up and down.</li>
+          <li><strong>Crumbling</strong> pads fall apart after you stand on them.</li>
+          <li><strong>Blink</strong> pads vanish and come back.</li>
+          <li><strong>Ice</strong> pads (cyan) are slippery.</li>
+          <li><strong>Bounce</strong> pads (green) launch you upward.</li>
+          <li><strong>Red bars</strong> spin. Touch one and you lose a life.</li>
+        </ul>
+
+        <h3>Power-ups</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Power</th><th>Effect</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Super Jump</td><td>Much higher jumps</td></tr>
+              <tr><td>Moon Gravity</td><td>Slow, floaty falls</td></tr>
+              <tr><td>Turbo Sneaks</td><td>You sprint without holding Shift, and a bit faster than a normal sprint</td></tr>
+              <tr><td>Double Jump</td><td>Press Space again in the air</td></tr>
+              <tr><td>Feather Fall</td><td>Hold Space while falling to glide</td></tr>
+              <tr><td>Star Magnet</td><td>Coins pull toward you</td></tr>
+              <tr><td>Safety Spark</td><td>The first red-bar hit each attempt is ignored</td></tr>
+              <tr><td>Sticky Grip</td><td>Ice does not slide, and landings are more forgiving</td></tr>
+              <tr><td>Time Warp</td><td>Red bars spin slower</td></tr>
+              <tr><td>Wide Pads</td><td>Every platform is larger</td></tr>
+              <tr><td>Hover Step</td><td>You can jump a little late and still make it</td></tr>
+              <tr><td>Spring Soles</td><td>Normal landings give a small hop</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Sandbox</h3>
+        <p><strong>Sandbox</strong> on the title screen unlocks all 100 courses and gives infinite lives. Progress from sandbox is not written to your save.</p>
+        <ul>
+          <li><strong>P</strong> opens the full power list. The one you pick stays on for that session.</li>
+          <li><strong>,</strong> and <strong>.</strong> move to the previous or next course.</li>
+          <li><strong>No Power</strong> clears the equipped power.</li>
+        </ul>
+        <p>Leave sandbox by going back to the map and choosing <strong>Continue adventure</strong>.</p>
+
+        <h3>Save data</h3>
+        <p>Progress is stored in this browser under the key <strong>starpath-dash-v1</strong>:</p>
+        <ul>
+          <li><strong>unlocked</strong> — highest course you can start</li>
+          <li><strong>coins</strong> — coins banked from cleared courses</li>
+          <li><strong>best</strong> — highest course number you have cleared</li>
+        </ul>
+        <p>It stays in this browser until you press <strong>Reset save</strong> or clear site data.</p>
+      </div>
+    </article>
+
+    <article class="game bramble" id="bramble">
+      <figure class="shot">
+        <img src="shots/bramble.png" alt="Agent Bramble on level 1, Cargo Spine, with five hearts and a headset waiting ahead." />
+      </figure>
+      <div class="copy">
+        <h2>Agent Bramble</h2>
+        <p>A park-service bear spy. Twenty-five vaults in one timed run. Put on a visor headset, free the scouts, and shut Director Vex down on level 25.</p>
+        <p>Enter a first and last name before the mission. That name is what shows up on the time leaderboard if you clear every level. The game remembers it in this browser, so the next visit skips the name screen.</p>
+        <a class="play" href="bramble.html">Play</a>
+
+        <h3>How a run works</h3>
+        <p>You start each level with 5 hearts. A hit knocks one off and gives you a short moment where the next hit does not count. At 0 hearts the screen says <strong>Busted</strong>. <strong>Try again</strong> restarts that level and puts your score back to what it was when the level began. <strong>Title</strong> drops the run.</p>
+        <p>A banner names the vault when it starts. Press Space or Enter to skip it, or wait and it goes away on its own.</p>
+
+        <h3>Controls</h3>
+        <p>Arrow keys or WASD both work. On a phone, on-screen buttons cover run, jump, slide, and laser.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Action</th><th>Key</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Run</td><td>Left and Right arrows</td></tr>
+              <tr><td>Jump. Press again in the air for a second jump</td><td>Up arrow</td></tr>
+              <tr><td>Slide. Needed in vents, and it ducks under shots</td><td>Down arrow</td></tr>
+              <tr><td>Yoink a bot’s headset up close. Hold to fire the visor laser</td><td>Space</td></tr>
+              <tr><td>Pause. The clock stops</td><td>Esc or P</td></tr>
+              <tr><td>Restart the current level</td><td>R</td></tr>
+              <tr><td>Resume from the pause screen</td><td>Esc, P, Space, or Enter</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>You have to be moving to start a slide. Sliding is faster than running. You cannot fire while you are sliding. Jumping stands you back up.</p>
+        <p>Hold Space only while you want the beam. Letting go stops it. You run slower while it is firing.</p>
+
+        <h3>How to clear a vault</h3>
+        <p>Most levels end at an exit on the right. A gate blocks the way until every scout on that level is free. Walk into a scout and they follow you. They are safe from spikes and enemies. When the last one is free, the gate opens. Touch the exit to clear the level. You get 1000 points, then the next vault starts on its own.</p>
+        <p>If you touch the exit early, a hint tells you what is still left: scouts, or the boss on the last level.</p>
+        <p>Spikes cost a heart. Falling off the map costs a heart and sends you back to the last solid ground you stood on. If that was your last heart, the fall ends the level.</p>
+
+        <h3>Headset and laser</h3>
+        <p>Levels hide a headset you can walk over. Visor bots are also wearing one. Stand close and press Space to pull it off and buckle it on. Until it is on, the laser does nothing.</p>
+        <p>The beam aims at an enemy in front of you, a little above or below, or fires straight ahead if nothing is there. It stops on walls and on a closed gate. It burns health even if a bot still has a helmet. Holding it spends charge. The meter refills on its own when you let go. A second headset fills the meter. A cell adds a chunk of charge, but only if you are already wearing a headset.</p>
+        <p>A helmet only changes stomps. Stomp a visor bot once to knock the helmet off, then stomp again to finish it. Yoinking the headset also takes the helmet off, and then one stomp is enough.</p>
+
+        <h3>Pickups</h3>
+        <p>The HUD shows hearts, score, the clock, headset charge, and shards collected out of the total on that level.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Pickup</th><th>Effect</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Shard</td><td>100 points</td></tr>
+              <tr><td>Gold shard</td><td>500 points</td></tr>
+              <tr><td>Headset</td><td>Turns the laser on. Another one fully recharges it</td></tr>
+              <tr><td>Cell</td><td>Adds charge if you already have a headset</td></tr>
+              <tr><td>Honey</td><td>Restores 2 hearts, up to 5</td></tr>
+              <tr><td>Scout</td><td>Follows you. 200 points. The gate opens when every scout is free</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Enemies</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Enemy</th><th>What they do</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Walker</td><td>Patrols the floor. Stomp once to defeat them</td></tr>
+              <tr><td>Visor bot</td><td>Stands still and shoots. Wears a headset. First stomp removes the helmet. Second stomp defeats them</td></tr>
+              <tr><td>Flyer</td><td>Hovers and shoots. Burn them with the laser</td></tr>
+              <tr><td>Spikes</td><td>A touch costs a heart</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A defeat is worth 50 points. Sliding under a shot lets it pass over you. Shots also stop on walls and gates.</p>
+        <p>Later vaults mix in more of these. Paths get longer. Low ceilings need a slide. Spike pits have a barge you can ride. Some gates want two scouts. Flyers show up, and shots come out faster.</p>
+
+        <h3>Levels</h3>
+        <p>The first two vaults and the last one are built by hand. The rest are generated, and the layout for a given number stays the same. Five color palettes rotate as the level number climbs.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Level</th><th>Name</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Cargo Spine</td></tr>
+              <tr><td>2</td><td>Amber Lake</td></tr>
+              <tr><td>3</td><td>Pine Switchback</td></tr>
+              <tr><td>4</td><td>Honeycomb Vent</td></tr>
+              <tr><td>5</td><td>Cinder Walk</td></tr>
+              <tr><td>6</td><td>Glass Orchard</td></tr>
+              <tr><td>7</td><td>Rust Trestle</td></tr>
+              <tr><td>8</td><td>Lantern Drift</td></tr>
+              <tr><td>9</td><td>Moss Lift</td></tr>
+              <tr><td>10</td><td>Copper Sluice</td></tr>
+              <tr><td>11</td><td>Night Market</td></tr>
+              <tr><td>12</td><td>Bramble Spires</td></tr>
+              <tr><td>13</td><td>Echo Causeway</td></tr>
+              <tr><td>14</td><td>Soot Garden</td></tr>
+              <tr><td>15</td><td>Relay Cliffs</td></tr>
+              <tr><td>16</td><td>Amber Aqueduct</td></tr>
+              <tr><td>17</td><td>Static Orchard</td></tr>
+              <tr><td>18</td><td>Kiln Bridge</td></tr>
+              <tr><td>19</td><td>Fog Catwalk</td></tr>
+              <tr><td>20</td><td>Scout Hollow</td></tr>
+              <tr><td>21</td><td>Wire Canopy</td></tr>
+              <tr><td>22</td><td>Redwood Switch</td></tr>
+              <tr><td>23</td><td>Ember Docks</td></tr>
+              <tr><td>24</td><td>Last Gate</td></tr>
+              <tr><td>25</td><td>Vex Core</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Director Vex</h3>
+        <p>Level 25 starts with no exit. Vex flies, shoots, then slams the floor. The slam leaves a shock on the ground. After the slam, the core opens. Hold the laser on the open core. The armor blocks the beam while the core is shut.</p>
+        <p>Under half health, Vex shoots more and leaves the core open for less time. Dropping the core to 0 is worth 2000 points. An exit appears where Vex was. Step into it to finish the run.</p>
+
+        <h3>Score, clock, and save data</h3>
+        <p>The clock starts when the mission starts. It keeps running through a busted screen. It stops while the game is paused, and it stops on the win screen.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Event</th><th>Points</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Shard</td><td>100</td></tr>
+              <tr><td>Gold shard</td><td>500</td></tr>
+              <tr><td>Enemy defeated</td><td>50</td></tr>
+              <tr><td>Scout freed</td><td>200</td></tr>
+              <tr><td>Level cleared</td><td>1000</td></tr>
+              <tr><td>Director Vex defeated</td><td>2000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Two values stay in this browser:</p>
+        <ul>
+          <li><strong>bramble-name</strong> — the first and last name from the name screen</li>
+          <li><strong>bramble-best</strong> — the highest score from a finished 25-level run</li>
+        </ul>
+        <p>The title screen shows that best score. Clearing site data wipes both.</p>
+
+        <h3>Leaderboard</h3>
+        <p>Finishing all 25 levels sends your time to the shared board. Open it from the lobby, from the win screen, or here: <a href="bramble-times.html" style="color:#2ee6c7">Bramble times</a>. It needs a connection.</p>
+        <p>Your name is stored once. A later clear only replaces it when the new time is faster. A time under 45 seconds is rejected. <strong>Refresh</strong> on the board reloads the list. Lower time ranks higher.</p>
+      </div>
+    </article>
+  </div>
+  <script>
+    document.querySelectorAll("details.games").forEach(function (menu) {
+      menu.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () { menu.removeAttribute("open"); });
+      });
+    });
+    document.addEventListener("click", function (event) {
+      document.querySelectorAll("details.games[open]").forEach(function (menu) {
+        if (!menu.contains(event.target)) menu.removeAttribute("open");
+      });
+    });
+  </script>
+</body>
+</html>

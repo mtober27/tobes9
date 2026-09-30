@@ -2,6 +2,8 @@
 
 Play the games here: https://mtober27.github.io/tobes9/
 
+A short tour with screenshots is at `promo.html`.
+
 Three browser games in one lobby. Open `game-room.html` and pick a cabinet. Each game is a single HTML file, so there is nothing to install.
 
 The pages load fonts from the internet. Starpath Dash also loads [Three.js](https://threejs.org/). A local static server works if opening the file directly does not:
