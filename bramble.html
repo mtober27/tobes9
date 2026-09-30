@@ -276,7 +276,7 @@
         <div class="row">
           <button class="btn" id="play">Start mission</button>
           <button class="btn ghost" id="mute">Sound on</button>
-          <a class="btn ghost" href="index.html">Game room</a>
+          <a class="btn ghost" href="game-room.html">Game room</a>
         </div>
         <div class="best" id="best"></div>
       </div>
@@ -310,7 +310,7 @@
         <p class="best" id="boardstatus"></p>
         <div class="row">
           <button class="btn" id="again">Play again</button>
-          <a class="btn ghost" href="bramble-leaderboard.html">Leaderboard</a>
+          <a class="btn ghost" href="bramble-times.html">Leaderboard</a>
           <button class="btn ghost" id="winquit">Title</button>
         </div>
       </div>
@@ -327,7 +327,7 @@
       </div>
     </div>
   </div>
-  <script src="bramble-board.js"></script>
+  <script src="bramble-times.js"></script>
   <script>
 (function () {
   "use strict";
@@ -472,6 +472,9 @@
     tokenMax: 0,
     rescues: 0,
     rescued: 0,
+    followers: [],
+    trail: [],
+    gateX: null,
     cam: { x: 0, y: 0 },
     grid: [],
     w: 0,
@@ -697,7 +700,7 @@
       }
       put(g, width - 4, GROUND, "E");
 
-      let sub = "Headset on. Free the scout. The gate opens after.";
+      let sub = "Free the scout. They follow you through the gate.";
       if (hasVent) sub = "Slide under the low ceiling, then free the scout.";
       if (hasBarge) sub = "Ride the barge across the spikes.";
       if (hasFlyer) sub = "Flyers shoot. Keep the visor laser ready.";
@@ -735,13 +738,13 @@
     const levels = [
       {
         name: "CARGO SPINE",
-        sub: "Grab a headset. Free the scout. Open the gate.",
+        sub: "Grab a headset. The scout follows you through the gate.",
         grid: L1,
         movers: []
       },
       {
         name: "AMBER LAKE",
-        sub: "Slide the vent. Ride the barge. Free the scout.",
+        sub: "Slide the vent. Ride the barge. The scout follows you.",
         grid: L2,
         movers: [
           { x: 22 * TILE, y: 12 * TILE, w: 4 * TILE, h: 14, min: 21 * TILE, max: 39 * TILE, axis: "x", rate: 0.7, t: 0 },
@@ -898,6 +901,9 @@
     G.tokenMax = 0;
     G.rescues = 0;
     G.rescued = 0;
+    G.followers = [];
+    G.trail = [];
+    G.gateX = null;
     G.hint = src.sub;
     G.hintT = 6.5;
     G.cam.x = 0;
@@ -932,7 +938,9 @@
         } else if (ch === "H") G.items.push(makeItem("headset", px, py, 0));
         else if (ch === "+") G.items.push(makeItem("heart", px, py, 0));
         else if (ch === "C") G.items.push(makeItem("cell", px, py, 0));
-        else if (ch === "R") {
+        else if (ch === "D") {
+          if (G.gateX == null || px < G.gateX) G.gateX = px;
+        } else if (ch === "R") {
           G.rescues++;
           G.items.push({
             kind: "rescue",
@@ -1080,6 +1088,9 @@
       G.deadT = 0.7;
       audio.boom();
       burst(p.x + PW / 2, p.y + 20, 26, "#d0894d", 260, 420);
+      for (const f of G.followers) burst(f.x + PW / 2, f.y + 20, 12, "#d0894d", 200, 360);
+      G.followers = [];
+      G.trail = [];
     }
   }
 
@@ -1138,10 +1149,12 @@
     G.score += 200;
     G.rescued++;
     G.rescues--;
-    popup(item.x, item.y - 16, "SCOUT FREE  200", "#b8fff2");
+    popup(item.x, item.y - 16, "SCOUT FOLLOWS  200", "#b8fff2");
     burst(item.x + 16, item.y + 20, 18, "#d7fff6", 200, 80);
     audio.rescue();
     G.items.splice(index, 1);
+    G.followers.push({ x: item.x, y: G.player.y, facing: G.player.facing, hop: Math.random() * 6 });
+    if (!G.trail.length) snapParty();
     if (G.rescues <= 0) {
       let opened = 0;
       for (let y = 0; y < G.h; y++) {
@@ -1171,6 +1184,7 @@
         G.hintT = 1.4;
         return;
       }
+      passParty("PASSED");
       G.score += 1000;
       popup(p.x, p.y - 30, "CLEAR +1000", "#ffe08a");
       p.firing = false;
@@ -1685,6 +1699,7 @@
         audio.hit();
         G.shake = 4;
       }
+      if (G.state === "play") snapParty();
     }
 
     if (p.firing) {
@@ -1745,7 +1760,61 @@
       }
     }
 
+    updateFollowers();
     tryExit();
+  }
+
+  /* Scouts walk the path you already ran. Spikes and enemies never touch them. */
+  function snapParty() {
+    const p = G.player;
+    if (!p) return;
+    G.trail = [];
+    for (let n = 0; n < 48; n++) {
+      G.trail.push({ x: p.x - p.facing * n * 8, y: p.y, facing: p.facing });
+    }
+    G.followers.forEach((f, i) => {
+      const t = G.trail[Math.min(G.trail.length - 1, 5 * (i + 1))];
+      f.x = t.x;
+      f.y = t.y;
+      f.facing = t.facing;
+    });
+  }
+
+  function passParty(label) {
+    if (!G.followers.length) return;
+    for (const f of G.followers) {
+      popup(f.x + 16, f.y - 8, label, "#b8fff2");
+      burst(f.x + 16, f.y + 18, 8, "#d7fff6", 140, 40);
+    }
+    audio.rescue();
+    G.followers = [];
+  }
+
+  function updateFollowers() {
+    const p = G.player;
+    if (!p || G.state !== "play" || !G.followers.length) return;
+    if (!G.trail.length) snapParty();
+    const head = G.trail[0];
+    if (Math.hypot(p.x - head.x, p.y - head.y) > 8) {
+      G.trail.unshift({ x: p.x, y: p.y, facing: p.facing });
+      if (G.trail.length > 160) G.trail.pop();
+    }
+    for (let i = 0; i < G.followers.length; i++) {
+      const f = G.followers[i];
+      const t = G.trail[Math.min(G.trail.length - 1, 5 * (i + 1))];
+      f.x = t.x;
+      f.y = t.y;
+      f.facing = t.facing;
+    }
+    if (G.gateX == null) return;
+    for (let i = G.followers.length - 1; i >= 0; i--) {
+      const f = G.followers[i];
+      if (f.x <= G.gateX + TILE) continue;
+      popup(f.x + 16, f.y - 8, "PASSED", "#b8fff2");
+      burst(f.x + 16, f.y + 18, 10, "#d7fff6", 150, 40);
+      audio.rescue();
+      G.followers.splice(i, 1);
+    }
   }
 
   function stuck(ent) {
@@ -1935,6 +2004,7 @@
       ctx.restore();
     }
 
+    for (const f of G.followers) drawScout(f);
     if (G.player && G.state !== "dead") drawPlayer(G.player);
     else if (G.player && G.deadT < 0.45) drawPlayer(G.player);
 
@@ -2039,6 +2109,44 @@
     ctx.fillStyle = "#ff5d73";
     ctx.beginPath();
     ctx.arc(12, -12, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawScout(f) {
+    ctx.save();
+    ctx.translate(f.x + PW / 2, f.y + PH);
+    ctx.scale((f.facing || 1) * 0.68, 0.68);
+    const bob = Math.abs(Math.sin(G.time * 14 + (f.hop || 0))) * -3;
+    ctx.translate(0, bob);
+    ctx.fillStyle = "rgba(0,0,0,.22)";
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 12, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#8a5a32";
+    ctx.fillRect(-8, -16, 5, 12);
+    ctx.fillRect(3, -16, 5, 12);
+    ctx.fillStyle = "#d0894d";
+    ctx.beginPath();
+    ctx.ellipse(0, -24, 12, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#7ef6e4";
+    ctx.fillRect(-7, -28, 14, 7);
+    ctx.beginPath();
+    ctx.arc(0, -40, 11, 0, Math.PI * 2);
+    ctx.fillStyle = "#d0894d";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-8, -48, 4, 0, Math.PI * 2);
+    ctx.arc(8, -48, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f3d2a6";
+    ctx.beginPath();
+    ctx.ellipse(6, -38, 5, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b242c";
+    ctx.beginPath();
+    ctx.arc(8, -39, 1.4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -2373,7 +2481,7 @@
     document.getElementById("hearts").textContent = "♥".repeat(p.hp) + "♡".repeat(Math.max(0, p.maxHp - p.hp));
     document.getElementById("score").textContent = String(G.score);
     document.getElementById("lvlname").textContent = G.meta
-      ? (G.level + 1) + "/" + LEVELS.length + "  " + G.meta.name + (G.rescues > 0 ? "  ·  " + G.rescues + " scout" + (G.rescues === 1 ? "" : "s") : "")
+      ? (G.level + 1) + "/" + LEVELS.length + "  " + G.meta.name + (G.rescues > 0 ? "  ·  " + G.rescues + " scout" + (G.rescues === 1 ? "" : "s") : (G.followers.length ? "  ·  following" : ""))
       : "";
     document.getElementById("clock").textContent = BrambleBoard.format(clockNow());
     document.getElementById("shards").textContent = G.tokens + "/" + G.tokenMax;

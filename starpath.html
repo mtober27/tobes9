@@ -40,29 +40,30 @@
       gap: 12px;
     }
     .badge {
-      background: linear-gradient(180deg, #810808, #ffe9a8);
+      background: linear-gradient(180deg, #fffdf8, #ffe7a3);
       color: var(--ink);
       border: 4px solid #fff;
       border-radius: 18px;
-      padding: 8px 14px;  
-      box-shadow: 0 8px 0 #dacaac, 0 14px 24px rgba(0,0,0,.35);
+      padding: 8px 14px;
+      box-shadow: 0 6px 0 #e09a2b;
       min-width: 110px;
     }
     .badge b { display: block; font-family: "Lilita One", sans-serif; font-size: 22px; letter-spacing: .5px; }
     .badge span { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .7; }
     .world-chip {
       text-align: center;
-      background: rgba(12, 10, 32, .72);
-      border: 3px solid #771515;
+      background: linear-gradient(180deg, #fff, #ffe4f1);
+      color: var(--ink);
+      border: 4px solid #fff;
       border-radius: 18px;
       padding: 8px 18px;
-      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 0 #ff7ab0;
     }
     .world-chip h2 {
       margin: 0;
       font-family: "Lilita One", cursive;
       font-size: 26px;
-      text-shadow: 0 3px 0 #000;
+      color: var(--ink);
     }
     .world-chip p { margin: 2px 0 0; font-weight: 700; opacity: .9; }
     /* Control reminder along the bottom of the screen. */
@@ -72,11 +73,13 @@
       left: 50%;
       transform: translateX(-50%);
       display: none;
-      background: rgba(10,8,28,.7);
-      border: 2px solid rgba(255,255,255,.35);
+      background: #fff8e8;
+      color: var(--ink);
+      border: 3px solid #fff;
       border-radius: 999px;
       padding: 8px 16px;
       font-size: 13px;
+      box-shadow: 0 4px 0 #e7c27a;
       white-space: nowrap;
     }
     /* Full-screen menus: title, world select, and the power-up picker. */
@@ -206,8 +209,10 @@
       top: 86px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(12,10,32,.8);
-      border: 3px solid #fff;
+      background: #fff;
+      color: var(--ink);
+      border: 4px solid #fff;
+      box-shadow: 0 5px 0 #7c5cff;
       border-radius: 999px;
       padding: 6px 16px;
       font-weight: 700;
@@ -251,7 +256,7 @@
             <button class="play" id="btnContinue">Continue adventure</button>
             <button class="play" id="btnSandbox" style="background:linear-gradient(180deg,#7dd3fc,#a855f7);color:#1a1333;box-shadow:0 5px 0 #6d28d9">Sandbox</button>
             <button class="ghost" id="btnReset">Reset save</button>
-            <a class="ghost" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">All games</a>
+            <a class="ghost" href="game-room.html" style="display:inline-flex;align-items:center;text-decoration:none">All games</a>
           </div>
         </div>
       </section>
@@ -333,9 +338,9 @@
     const camera = new THREE.PerspectiveCamera(68, 1, 0.1, 600);
     const clock = new THREE.Clock();
 
-    const hemi = new THREE.HemisphereLight(0xfff4dc, 0x4ade80, 1.2);
+    const hemi = new THREE.HemisphereLight(0xfff6ea, 0x7dffb3, 1.45);
     scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xfff3c4, 1.45);
+    const sun = new THREE.DirectionalLight(0xfff3c4, 0.9);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 2;
@@ -402,6 +407,66 @@
     addEventListener("resize", resize);
     resize();
 
+    /* Flat cartoon colors: a few light bands, then a dark ink shell around each shape. */
+    const toonRamp = (() => {
+      const c = document.createElement("canvas");
+      c.width = 4;
+      c.height = 1;
+      const g = c.getContext("2d");
+      ["#c4c4c4", "#e4e4e4", "#f6f6f6", "#ffffff"].forEach((hex, i) => {
+        g.fillStyle = hex;
+        g.fillRect(i, 0, 1, 1);
+      });
+      const tex = new THREE.CanvasTexture(c);
+      tex.minFilter = THREE.NearestFilter;
+      tex.magFilter = THREE.NearestFilter;
+      return tex;
+    })();
+    const outlineMat = new THREE.MeshBasicMaterial({ color: 0x241833, side: THREE.BackSide });
+
+    function ink(mesh, amount) {
+      if (!mesh || mesh.userData.noInk || mesh.userData.inked || mesh.userData.isOutline) return mesh;
+      const shell = new THREE.Mesh(mesh.geometry, outlineMat);
+      const s = 1 + (amount == null ? 0.055 : amount);
+      shell.scale.set(s, s, s);
+      shell.castShadow = false;
+      shell.receiveShadow = false;
+      shell.userData.isOutline = true;
+      mesh.add(shell);
+      mesh.userData.inked = true;
+      return mesh;
+    }
+
+    function inkGroup(root) {
+      const meshes = [];
+      root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+      meshes.forEach((o) => ink(o));
+    }
+
+    const skyCanvas = document.createElement("canvas");
+    skyCanvas.width = 4;
+    skyCanvas.height = 256;
+    const skyCtx = skyCanvas.getContext("2d");
+    const skyTex = new THREE.CanvasTexture(skyCanvas);
+    const skyDome = new THREE.Mesh(
+      new THREE.SphereGeometry(420, 28, 18),
+      new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, depthWrite: false, fog: false })
+    );
+    skyDome.userData.noInk = true;
+    skyDome.frustumCulled = false;
+    scene.add(skyDome);
+    function paintSky(topHex, midHex) {
+      const css = (hex) => "#" + (hex >>> 0).toString(16).padStart(6, "0");
+      const g = skyCtx.createLinearGradient(0, 0, 0, 256);
+      g.addColorStop(0, css(topHex));
+      g.addColorStop(0.68, css(topHex));
+      g.addColorStop(0.86, css(midHex));
+      g.addColorStop(1, "#fff7ea");
+      skyCtx.fillStyle = g;
+      skyCtx.fillRect(0, 0, 4, 256);
+      skyTex.needsUpdate = true;
+    }
+
     /* Shared helpers for soft platforms and colored materials. */
     function roundedBoxGeo(w, h, d, radius) {
       const r = Math.max(0.05, Math.min(radius ?? Math.min(w, d, h) * 0.28, w * 0.45, d * 0.45, h * 0.48));
@@ -430,16 +495,15 @@
     }
 
     function shade(color, opts = {}) {
-      const mat = new THREE.MeshStandardMaterial({
+      const mat = new THREE.MeshToonMaterial({
         color,
+        gradientMap: toonRamp,
         emissive: opts.emissive || 0x000000,
-        emissiveIntensity: opts.ei ?? 0,
-        roughness: opts.roughness ?? 0.42,
-        metalness: opts.metalness ?? 0.08
+        emissiveIntensity: opts.ei ?? 0
       });
       if (opts.glow) {
         mat.emissive = new THREE.Color(color);
-        mat.emissiveIntensity = opts.glow;
+        mat.emissiveIntensity = Math.min(0.45, opts.glow);
       }
       return mat;
     }
@@ -449,18 +513,20 @@
       m.position.y = y;
       m.castShadow = true;
       m.receiveShadow = true;
+      ink(m, 0.08);
       return m;
     }
 
     /* Builds the hoodie runner out of simple shapes and stores the joints. */
     function makePlayer() {
-      const skin = shade(0xc68642, { roughness: 0.55 });
-      const jeans = shade(0x243652, { roughness: 0.88 });
-      const hoodie = shade(0x8f1d1d, { roughness: 0.82 });
-      const shoe = shade(0x1b1b1b, { roughness: 0.45, metalness: 0.12 });
-      const hair = shade(0x2b1810, { roughness: 0.92 });
-      const white = shade(0xf4f4f4, { roughness: 0.35 });
-      const iris = shade(0x2c1810, { roughness: 0.3 });
+      const skin = shade(0xffc7a3);
+      const jeans = shade(0x3d7eff);
+      const hoodie = shade(0xffd23a);
+      const shoe = shade(0xfff8ee);
+      const hair = shade(0x3a2418);
+      const white = shade(0xffffff);
+      const iris = shade(0x241833);
+      const blush = shade(0xff8fa8);
 
       const root = new THREE.Group();
       const hips = new THREE.Group();
@@ -522,18 +588,21 @@
       head.position.y = 0.4;
       chest.add(head);
       chest.add(jointMesh(new THREE.CylinderGeometry(0.055, 0.065, 0.1, 12), skin, 0.28));
-      head.add(jointMesh(new THREE.SphereGeometry(0.13, 20, 16), skin, 0));
-      head.add(jointMesh(new THREE.SphereGeometry(0.134, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), hair, 0.025));
-      const bang = jointMesh(new THREE.SphereGeometry(0.07, 10, 8), hair, 0);
-      bang.position.set(0, 0.06, 0.1);
+      head.add(jointMesh(new THREE.SphereGeometry(0.18, 20, 16), skin, 0));
+      head.add(jointMesh(new THREE.SphereGeometry(0.186, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), hair, 0.03));
+      const bang = jointMesh(new THREE.SphereGeometry(0.09, 10, 8), hair, 0);
+      bang.position.set(0, 0.08, 0.13);
       bang.scale.set(1.5, 0.45, 0.7);
       head.add(bang);
       [-1, 1].forEach((s) => {
-        const eye = jointMesh(new THREE.SphereGeometry(0.028, 10, 8), white, 0);
-        eye.position.set(s * 0.045, 0.02, 0.11);
-        const pupil = jointMesh(new THREE.SphereGeometry(0.014, 8, 8), iris, 0);
-        pupil.position.set(s * 0.045, 0.018, 0.13);
-        head.add(eye, pupil);
+        const eye = jointMesh(new THREE.SphereGeometry(0.042, 10, 8), white, 0);
+        eye.position.set(s * 0.06, 0.02, 0.15);
+        const pupil = jointMesh(new THREE.SphereGeometry(0.02, 8, 8), iris, 0);
+        pupil.position.set(s * 0.062, 0.016, 0.185);
+        const cheek = jointMesh(new THREE.SphereGeometry(0.028, 8, 8), blush, 0);
+        cheek.position.set(s * 0.09, -0.04, 0.14);
+        cheek.scale.set(1.2, 0.7, 0.5);
+        head.add(eye, pupil, cheek);
       });
       const nose = jointMesh(new THREE.SphereGeometry(0.025, 8, 8), skin, 0);
       nose.position.set(0, -0.01, 0.125);
@@ -555,16 +624,23 @@
     /* Throws away the previous course before a new one is built. */
     function clearCourse() {
       if (!course) return;
-      course.group.traverse((o) => {
-        if (o.geometry) o.geometry.dispose();
-        if (o.material) {
-          if (Array.isArray(o.material)) o.material.forEach((m) => m.dispose());
-          else o.material.dispose();
-        }
-      });
+      disposeDrawn(course.group);
+      disposeDrawn(decorRoot);
       scene.remove(course.group);
       decorRoot.clear();
       course = null;
+    }
+
+    /* Frees shapes from a finished course. The shared ink material stays. */
+    function disposeDrawn(root) {
+      root.traverse((o) => {
+        if (!o.isMesh) return;
+        if (o.geometry && !o.userData.isOutline) o.geometry.dispose();
+        if (o.material && o.material !== outlineMat) {
+          if (Array.isArray(o.material)) o.material.forEach((m) => { if (m !== outlineMat) m.dispose(); });
+          else o.material.dispose();
+        }
+      });
     }
 
     /* Shortcuts for boxes, cylinders, spheres, and ground mounds. */
@@ -574,6 +650,7 @@
       mesh.position.set(x, y, z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      ink(mesh, 0.045);
       group.add(mesh);
       return mesh;
     }
@@ -583,6 +660,7 @@
       mesh.position.set(x, y, z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      ink(mesh, 0.05);
       group.add(mesh);
       return mesh;
     }
@@ -592,6 +670,7 @@
       mesh.position.set(x, y, z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      ink(mesh, 0.06);
       if (opts.scale) mesh.scale.copy(opts.scale);
       group.add(mesh);
       return mesh;
@@ -603,6 +682,7 @@
       m.position.set(x, y, z);
       m.castShadow = true;
       m.receiveShadow = true;
+      ink(m, 0.04);
       decorRoot.add(m);
       return m;
     }
@@ -743,8 +823,9 @@
       const t = (levelNum - 1) / 99;
       const local = (stage - 1) / 9;
 
+      paintSky(world.sky, world.fog);
       scene.background = new THREE.Color(world.sky);
-      scene.fog = new THREE.Fog(world.fog, 32, world.fogFar);
+      scene.fog = new THREE.Fog(world.fog, 48, world.fogFar);
       hemi.color.setHex(world.sky);
       hemi.groundColor.setHex(world.ground);
       sun.color.setHex(0xfff6d8);
@@ -886,16 +967,20 @@
       floor.rotation.x = -Math.PI / 2;
       floor.position.y = floorY;
       floor.receiveShadow = true;
+      floor.userData.noInk = true;
       group.add(floor);
 
       if (world.gimmick === "lava") {
         const lava = new THREE.Mesh(new THREE.CircleGeometry(220, 48), shade(0xff3b00, { emissive: 0xff2200, ei: 0.55, roughness: 0.35 }));
         lava.rotation.x = -Math.PI / 2;
         lava.position.y = -6.15;
+        lava.userData.noInk = true;
         group.add(lava);
       }
 
       decorateWorld(world, rng, z + 20, floorY);
+      inkGroup(group);
+      inkGroup(decorRoot);
       course = { group, plats, coins, hazards, world, worldIndex, stage, levelNum, killY: world.gimmick === "lava" ? -5.6 : -7.4, flag, banner, gravity: world.gimmick === "ocean" || world.gimmick === "sky" ? 18 : 28 };
       return course;
     }
